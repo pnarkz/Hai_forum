@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>🛠️ Admin Trash Bin – All Deleted Items (Last 30 Days)</h1>
+
+<h2>🧵 Deleted Topics</h2>
+{% if deleted_topics %}
+<ul>
+  {% for topic in deleted_topics %}
+  <li>
+    <strong>{{ topic.title }}</strong><br>
+    by <em>{{ topic.author.username }}</em><br>
+    <small>🗓️ Deleted at: {{ topic.deleted_at|date:"Y-m-d H:i" }}</small>
+    
+    <form method="post" action="{% url 'restore_topic' topic.id %}" style="margin-top: 5px;">
+      {% csrf_token %}
+      <button type="submit">Restore</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No deleted topics in the last 30 days.</p>
+{% endif %}
+
+<hr>
+
+<h2>💬 Deleted Comments</h2>
+{% if deleted_comments %}
+<ul>
+  {% for comment in deleted_comments %}
+  <li>
+    {{ comment.content }}<br>
+    by <em>{{ comment.author }}</em><br>
+    <small>🗓️ Deleted at: {{ comment.deleted_at|date:"Y-m-d H:i" }}</small>
+    
+    <form method="post" action="{% url 'restore_comment' comment.id %}" style="margin-top: 5px;">
+      {% csrf_token %}
+      <button type="submit">Restore</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No deleted comments in the last 30 days.</p>
+{% endif %}
+
+<hr>
+<a href="{% url 'admin:index' %}">← Back to Admin Panel</a>
+{% endblock %}

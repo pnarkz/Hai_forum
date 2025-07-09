@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Profile Header -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px; display:flex; align-items:center; gap:20px;">
+    {% if image_url %}
+      <img src="{{ image_url }}" alt="Profile picture" width="100" height="100" style="border-radius:50%; object-fit:cover;">
+    {% else %}
+      <img src="https://ui-avatars.com/api/?name={{ profile_user.username }}" alt="Avatar" width="100" height="100" style="border-radius:50%;">
+    {% endif %}
+    <h2 style="font-size:1.5em; margin:0;">👤 {{ profile_user.username }}</h2>
+  </div>
+
+  <!-- Stats -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px;">
+    <p><strong>🔥 Karma Score:</strong> {{ karma }}</p>
+    <p>🕒 Last Login: {{ last_login|date:"d M Y H:i" }}</p>
+    <ul style="list-style:none; padding:0; display:flex; gap:15px; margin:10px 0 0 0;">
+      <li>📌 Topics: {{ topic_count }}</li>
+      <li>💬 Comments: {{ comment_count }}</li>
+      <li>❤️ Likes: {{ like_count }}</li>
+    </ul>
+  </div>
+
+  <!-- Tags -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px;">
+    <h4>🏷️ Top Tags</h4>
+    {% if most_common_tags %}
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        {% for tag, count in most_common_tags %}
+          <span style="background:#e2e8f0; padding:4px 8px; border-radius:12px;">{{ tag }} ({{ count }})</span>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No tags used yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Bio -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px;">
+    <h3>📝 About Me</h3>
+    {% if bio %}
+      <p>{{ bio }}</p>
+    {% else %}
+      <p><em>No bio written yet.</em></p>
+    {% endif %}
+  </div>
+
+  <!-- Topics Created -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px;">
+    <h3>📌 Topics Created</h3>
+    {% if topics %}
+      <ul style="list-style:none; padding:0; margin:0;">
+        {% for topic in topics %}
+          <li style="margin-bottom:8px;">
+            <a href="{% url 'topic_detail' topic.id %}" style="color:#007BFF;">{{ topic.title }}</a>
+            <small style="color:#555;">({{ topic.date_created|date:"Y-m-d" }})</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No topics created yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Comments -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px;">
+    <h3>💬 Comments</h3>
+    {% if comments %}
+      <ul style="list-style:none; padding:0; margin:0;">
+        {% for comment in comments %}
+          <li style="margin-bottom:8px;">
+            “{{ comment.content|truncatechars:60 }}” —
+            <a href="{% url 'topic_detail' comment.topic.id %}" style="color:#007BFF;">{{ comment.topic.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No comments yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Liked Topics -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px;">
+    <h3>❤️ Liked Topics</h3>
+    {% if liked_topics %}
+      <ul style="list-style:none; padding:0; margin:0;">
+        {% for topic in liked_topics %}
+          <li style="margin-bottom:8px;">
+            <a href="{% url 'topic_detail' topic.id %}" style="color:#007BFF;">{{ topic.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No liked topics yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="card" style="padding:20px; border-radius:8px; margin-bottom:20px;">
+    <h3>📊 Recent Activity</h3>
+
+    <!-- Last Topics -->
+    <div style="margin-bottom:20px;">
+      <h4 style="color:#4a148c;">🆕 Latest Topics</h4>
+      {% if recent_topics %}
+        <ul style="list-style:none; padding:0;">
+          {% for topic in recent_topics %}
+            <li style="margin-bottom:8px;">
+              <a href="{% url 'topic_detail' topic.id %}" style="color:#007BFF;">{{ topic.title }}</a>
+              <small style="color:#777;">({{ topic.date_created|date:"M d, H:i" }})</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p><em>No recent topics.</em></p>
+      {% endif %}
+    </div>
+
+    <!-- Last Comments -->
+    <div style="margin-bottom:20px;">
+      <h4 style="color:#1b5e20;">💬 Latest Comments</h4>
+      {% if recent_comments %}
+        <ul style="list-style:none; padding:0;">
+          {% for comment in recent_comments %}
+            <li style="margin-bottom:8px;">
+              “{{ comment.content|truncatechars:60 }}” <small>on</small>
+              <a href="{% url 'topic_detail' comment.topic.id %}" style="color:#007BFF;">{{ comment.topic.title }}</a>
+              <small style="color:#777;">({{ comment.date_created|date:"M d, H:i" }})</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p><em>No recent comments.</em></p>
+      {% endif %}
+    </div>
+
+    <!-- Last Likes -->
+    <div>
+      <h4 style="color:#c62828;">❤️ Recently Liked Topics</h4>
+      {% if recent_liked_topics %}
+        <ul style="list-style:none; padding:0;">
+          {% for topic in recent_liked_topics %}
+            <li style="margin-bottom:8px;">
+              <a href="{% url 'topic_detail' topic.id %}" style="color:#007BFF;">{{ topic.title }}</a>
+              <small style="color:#777;">({{ topic.date_created|date:"M d" }})</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p><em>No recent likes.</em></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Buttons (Edit/Password) -->
+  {% if user == profile_user %}
+    <div style="text-align:center; margin-top:20px;">
+      <a href="{% url 'accounts:profile_edit' %}" class="inline-block bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-md">
+        ✏️ Edit Profile
+      </a>
+      <a href="{% url 'accounts:password_change' %}" class="inline-block bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md ml-2">
+        🔒 Change Password
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

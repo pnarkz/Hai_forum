@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Reply to:</h2>
+  <blockquote>{{ parent.content }}</blockquote>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Post Reply</button>
+  </form>
+  <a href="{% url 'topic_detail' topic.id %}">← Back to Topic</a>
+{% endblock %}

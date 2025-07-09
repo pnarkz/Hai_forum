@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static form_tags %}
+
+{% block content %}
+<style>
+  .form-label {
+    font-weight: 600;
+    color: #4a4a4a;
+    margin-bottom: 5px;
+  }
+  .form-input,
+  .form-textarea {
+    border: none;
+    border-bottom: 2px solid #ccc;
+    width: 100%;
+    padding: 8px 5px;
+    font-size: 16px;
+    background-color: transparent;
+    transition: border-color 0.3s ease;
+  }
+  .form-input:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-bottom: 2px solid #7b1fa2;
+  }
+  .section-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 16px;
+    border-left: 5px solid #2196F3;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
+  }
+  .section-card.purple {
+    border-left-color: #9C27B0;
+  }
+  .section-header {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  .avatar-preview {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+  }
+  .btn-save {
+    background: #4CAF50;
+    color: white;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s;
+  }
+  .btn-save:hover {
+    background: #388E3C;
+  }
+  .messages li.error {
+    background: #ffdddd;
+    border: 1px solid #ff5c5c;
+    color: #a94442;
+  }
+  .messages li.success {
+    background: #ddffdd;
+    border: 1px solid #5cff5c;
+    color: #31708f;
+  }
+</style>
+
+<div class="container" style="max-width:850px; margin:50px auto;">
+  <div class="card" style="padding:40px; background:linear-gradient(to bottom right, #fefefe, #eef7fb); border-radius:16px; box-shadow:0 12px 25px rgba(0,0,0,0.05);">
+
+    <h2 style="text-align:center; font-size:32px; margin-bottom:35px; font-weight:bold; color:#4a148c;">
+      🎨 Customize Your <span style="color:#7b1fa2;">Profile</span>
+    </h2>
+
+    {# Genel form hataları (parola eşleşmesi vs.) #}
+    {% if u_form.non_field_errors or p_form.non_field_errors %}
+      <ul class="messages" style="margin-bottom:20px;">
+        {% for err in u_form.non_field_errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+        {% for err in p_form.non_field_errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    {# Alan bazlı hatalar #}
+    {% if u_form.errors or p_form.errors %}
+      <ul class="messages" style="margin-bottom:20px;">
+        {% for field in u_form %}
+          {% for err in field.errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+        {% endfor %}
+        {% for field in p_form %}
+          {% for err in field.errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'accounts:profile_edit' %}" style="display:flex; flex-direction:column; gap:35px;">
+      {% csrf_token %}
+
+      <!-- Account Info -->
+      <section class="section-card">
+        <h3 class="section-header">🔐 Account Info</h3>
+
+        {{ u_form.username|label_with_icon:"👤"|safe }}
+        {{ u_form.username|add_class:"form-input"|add_placeholder:"Enter your username"|set_autofocus }}
+        
+        {{ u_form.email|label_with_icon:"📧"|safe }}
+        {{ u_form.email|add_class:"form-input"|add_placeholder:"Your email address" }}
+        
+        <div style="display:flex; gap:20px;">
+          <div style="flex:1;">
+            {{ u_form.first_name|label_with_icon:"🪪"|safe }}
+            {{ u_form.first_name|add_class:"form-input"|add_placeholder:"First name" }}
+          </div>
+          <div style="flex:1;">
+            {{ u_form.last_name|label_with_icon:"🧾"|safe }}
+            {{ u_form.last_name|add_class:"form-input"|add_placeholder:"Last name" }}
+          </div>
+        </div>
+      </section>
+
+      <!-- Profile Details -->
+      <section class="section-card purple">
+        <h3 class="section-header">🖼️ Profile Details</h3>
+
+        <div style="display:flex; gap:20px; align-items:center;">
+          <img id="avatarPreview"
+               src="{% if profile_picture_url %}{{ profile_picture_url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
+               alt="Avatar Preview" class="avatar-preview">
+          <div style="flex:1;">
+            {{ p_form.profile_picture|label_with_icon:"📷 Profile Picture"|safe }}
+            {{ p_form.profile_picture }}
+          </div>
+        </div>
+
+        {{ p_form.bio|label_with_icon:"📝"|safe }}
+        {{ p_form.bio|add_class:"form-textarea"|add_placeholder:"Tell us a bit about yourself..." }}
+
+        {{ p_form.location|label_with_icon:"📍"|safe }}
+        {{ p_form.location|add_class:"form-input"|add_placeholder:"Your location" }}
+
+        {{ p_form.website|label_with_icon:"🌐"|safe }}
+        {{ p_form.website|add_class:"form-input"|add_placeholder:"Your personal website" }}
+
+        {{ p_form.twitter|label_with_icon:"🐦"|safe }}
+        {{ p_form.twitter|add_class:"form-input"|add_placeholder:"Twitter profile link" }}
+
+        {{ p_form.linkedin|label_with_icon:"🔗"|safe }}
+        {{ p_form.linkedin|add_class:"form-input"|add_placeholder:"LinkedIn profile link" }}
+      </section>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-save">💾 Save Changes</button>
+
+      <p style="text-align:center; margin-top:15px;">
+        <a href="{% url 'accounts:user_profile' username=request.user.username %}"
+           style="color:#2196F3; text-decoration:none;">← Back to Profile</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<script>
+  const input = document.querySelector('input[type="file"][name$="profile_picture"]');
+  const preview = document.getElementById('avatarPreview');
+  if (input) {
+    input.addEventListener('change', function () {
+      const [file] = input.files;
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+      }
+    });
+  }
+</script>
+{% endblock %}

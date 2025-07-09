@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:900px; margin:40px auto;">
+
+  <!-- Header -->
+  <h1 style="font-size:2rem; margin-bottom:20px; color:#4a148c;">
+    {% if selected_category %}
+      🏷️ Topics in “{{ selected_category.name }}”
+    {% else %}
+      🏷️ All Topics
+    {% endif %}
+  </h1>
+
+  <!-- Category Filter -->
+  <div style="margin-bottom:30px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+    <span style="font-weight:600;">🔎 Filter by Category:</span>
+    <a href="{% url 'topic_list' %}"
+       styl="padding:6px 12px; border-radius:6px; text-decoration:none; {{ not selected_category_id|yesno:'background:#7b1fa2;color:#fff;,background:#eee;color:#333;' }}">
+      All
+    </a>
+    {% for category in categories %}
+      <a href="{% url 'topics_by_category' category.id %}"
+         styl="padding:6px 12px; border-radius:6px; text-decoration:none; {{ selected_category_id == category.id|yesno:'background:#7b1fa2;color:#fff;,background:#eee;color:#333;' }}">
+        {{ category.name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Popular Sections -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:30px;">
+    <div class="card" style="padding:20px;">
+      <h2 style="margin-bottom:15px; color:#c62828;">🔥 Most Liked</h2>
+      {% if popular_by_likes %}
+        <ul style="list-style:none; margin:0; padding:0;">
+          {% for t in popular_by_likes %}
+            <li style="margin-bottom:10px; display:flex; justify-content:space-between;">
+              <a href="{% url 'topic_detail' t.id %}" style="color:#007BFF; text-decoration:none;">
+                {{ t.title }}
+              </a>
+              <span style="color:#777;">{{ t.like_count }} ❤️</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="color:#666; font-style:italic;">No liked topics yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="card" style="padding:20px;">
+      <h2 style="margin-bottom:15px; color:#1b5e20;">💬 Most Discussed</h2>
+      {% if popular_by_comments %}
+        <ul style="list-style:none; margin:0; padding:0;">
+          {% for t in popular_by_comments %}
+            <li style="margin-bottom:10px; display:flex; justify-content:space-between;">
+              <a href="{% url 'topic_detail' t.id %}" style="color:#007BFF; text-decoration:none;">
+                {{ t.title }}
+              </a>
+              <span style="color:#777;">{{ t.comment_count }} 💬</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="color:#666; font-style:italic;">No discussed topics yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Topics List -->
+  {% if topics %}
+    <div style="display:grid; gap:20px;">
+      {% for topic in topics %}
+        <div class="card" style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <a href="{% url 'topic_detail' topic.id %}"
+               style="font-size:1.1rem; font-weight:600; color:#007BFF; text-decoration:none;">
+              {{ topic.title }}
+            </a>
+            <p style="margin:6px 0 0; color:#555; font-size:0.9rem;">
+              📁 {{ topic.category.name }}  •  👤 
+              <a href="{% url 'accounts:user_profile' username=topic.author.username %}"
+                 style="color:#333; text-decoration:none; font-weight:500;">
+                {{ topic.author.username }}
+              </a>
+              • 🕒 <time>{{ topic.date_created|date:"Y-m-d H:i" }}</time>
+            </p>
+          </div>
+          <a href="{% url 'topics_by_tag' topic.tags.all.0.slug %}"
+             style="background:#e1bee7; color:#4a148c; padding:4px 8px; border-radius:6px; text-decoration:none;">
+            #{{ topic.tags.all.0.name }}
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="color:#666; font-style:italic;">No topics found.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

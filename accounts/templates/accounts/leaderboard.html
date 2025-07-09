@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width:800px; margin:40px auto;">
+
+  <h2 style="text-align:center; font-size:2rem; margin-bottom:30px; color:#4a148c;">
+    🏆 Karma Leaderboard
+  </h2>
+
+  <div class="card" style="padding:20px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f3e5f5;">
+          <th style="text-align:left; padding:12px; font-weight:600; color:#4a148c;">#</th>
+          <th style="text-align:left; padding:12px; font-weight:600; color:#4a148c;">User</th>
+          <th style="text-align:right; padding:12px; font-weight:600; color:#4a148c;">🔥 Karma</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for profile in leaderboard %}
+          <tr styl="border-bottom:1px solid #eee; background:{% cycle '#fff' '#fafafa' %};">
+            <td style="padding:12px; font-weight:500; color:#333;">
+              {{ forloop.counter }}
+            </td>
+            <td style="padding:12px; display:flex; align-items:center; gap:10px;">
+              {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" width="40" height="40" style="border-radius:50%; object-fit:cover;">
+              {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ profile.user.username }}&background=ddd&color=555" width="40" height="40" style="border-radius:50%;">
+              {% endif %}
+              <a href="{% url 'accounts:user_profile' username=profile.user.username %}"
+                 style="text-decoration:none; color:#7b1fa2; font-weight:500;">
+                {{ profile.user.username }}
+              </a>
+            </td>
+            <td style="padding:12px; text-align:right; font-weight:600; color:#333;">
+              {{ profile.karma }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

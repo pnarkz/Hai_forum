@@ -1,0 +1,82 @@
+
+
+{% extends 'base.html' %}
+{% load form_tags %}
+
+{% block content %}
+<style>
+  .form-label {
+    font-weight: 600;
+    color: #4a4a4a;
+    margin-bottom: 5px;
+  }
+  .form-input {
+    border: none;
+    border-bottom: 2px solid #999;
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    background-color: transparent;
+    transition: border-color 0.3s ease;
+  }
+  .form-input:focus {
+    outline: none;
+    border-bottom: 2px solid #007BFF;
+  }
+  .form-section {
+    margin-bottom: 20px;
+  }
+  .tag-info {
+    font-size: 0.85em;
+    color: #777;
+  }
+  .btn-custom {
+    padding: 10px 20px;
+    background-color: #6c63ff;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    transition: background-color 0.3s;
+  }
+  .btn-custom:hover {
+    background-color: #5548db;
+  }
+</style>
+
+<div class="container mt-5" style="max-width: 720px;">
+  <h2 style="font-size: 2rem; color: #333; margin-bottom: 20px;">
+    📝 <span style="color: #6c63ff;">Create a <strong>New Topic</strong></span>
+  </h2>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="form-section">
+      <label class="form-label">📌 Title</label>
+      {{ form.title|add_class:"form-input" }}
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">💬 Content</label>
+      {{ form.content|add_class:"form-input" }}
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">📂 Category</label>
+      {{ form.category|add_class:"form-input" }}
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">🏷️ Tags</label>
+      {{ form.tags|add_class:"form-input" }}
+      <p class="tag-info">Separate with commas, e.g. <code>django, ai, backend</code></p>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <a href="{% url 'topic_list' %}" style="color:#888; font-size: 0.95em;">← Back to Topics</a>
+      <button type="submit" class="btn-custom">➕ Create Topic</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

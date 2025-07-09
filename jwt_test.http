@@ -1,0 +1,51 @@
+### JWT Token Al
+POST http://127.0.0.1:8000/api/token/
+Content-Type: application/json
+
+{
+  "username": "pnar",
+  "password": "Print_243."
+}
+
+GET http://127.0.0.1:8000/api/topics/
+Authorization: Bearer <"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTYxODg0LCJpYXQiOjE3NTE1NjE1ODQsImp0aSI6IjdjZDBkOGYzOTE1ZTQ0NTg4ZDFiMGE0YzczNTBjMDgxIiwidXNlcl9pZCI6MX0.vM82be_trcxwk1IeUcfjeX-m2QMbqoKoTl7-AnCSjcU">
+
+### Yeni Konu Oluştur
+POST http://127.0.0.1:8000/api/topics/
+Content-Type: application/json
+Authorization: Bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTYxODg0LCJpYXQiOjE3NTE1NjE1ODQsImp0aSI6IjdjZDBkOGYzOTE1ZTQ0NTg4ZDFiMGE0YzczNTBjMDgxIiwidXNlcl9pZCI6MX0.vM82be_trcxwk1IeUcfjeX-m2QMbqoKoTl7-AnCSjcU"
+
+{
+  "title": "REST API ile Oluşturulan Konu",
+  "content": "Bu konu REST Client üzerinden oluşturuldu.",
+  "category": 1
+}
+
+### Kategori Listesi
+GET http://127.0.0.1:8000/api/categories/
+
+GET http://127.0.0.1:8000/api/topics/my_topics/
+Authorization: Bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTYxODg0LCJpYXQiOjE3NTE1NjE1ODQsImp0aSI6IjdjZDBkOGYzOTE1ZTQ0NTg4ZDFiMGE0YzczNTBjMDgxIiwidXNlcl9pZCI6MX0.vM82be_trcxwk1IeUcfjeX-m2QMbqoKoTl7-AnCSjcU"
+
+### Aktif konulu kategorileri getir
+GET http://127.0.0.1:8000/api/categories/
+Authorization: Bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTYxODg0LCJpYXQiOjE3NTE1NjE1ODQsImp0aSI6IjdjZDBkOGYzOTE1ZTQ0NTg4ZDFiMGE0YzczNTBjMDgxIiwidXNlcl9pZCI6MX0.vM82be_trcxwk1IeUcfjeX-m2QMbqoKoTl7-AnCSjcU"
+
+GET http://127.0.0.1:8000/api/notifications/
+Authorization: Bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNjU5OTY2LCJpYXQiOjE3NTE2NTk2NjYsImp0aSI6ImJkODMzNmQyMThkNTRhYWE4ZGIxNzc1YmM1Y2M0MTVhIiwidXNlcl9pZCI6MX0.mUEoLob1G8EPQxyCAGlE7khJQQi5T4RWhXta1IfHLDI"
+
+### Bildirimleri Listele (Token ile)
+GET http://127.0.0.1:8000/api/notifications/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNjYxMzMxLCJpYXQiOjE3NTE2NjEwMzEsImp0aSI6ImI4NGMyYWMyMzcwMzQwYmM4OTVlMTM0OTA5NWUzZDAyIiwidXNlcl9pZCI6MX0.sEL3pM4nuSccEJfJG8nKzDnmavFEZN6UuXao4YWlXY8
+
+### Yorumu beğen (JWT Token gerekli)
+POST http://127.0.0.1:8000/api/comments/5/like/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxODkyMjI1LCJpYXQiOjE3NTE4OTE5MjUsImp0aSI6IjY5MDQ3Mzk3MDQyZjRmMzNiYjQ4MzAxOWZiNTU0ZWQ5IiwidXNlcl9pZCI6MX0.7Hgts1aDGRLyk2EUnOBDwa5Ur7UeRFrLg_X0bts-RSU
+###
+
+### Yorumu geri al (JWT Token gerekli)
+POST http://127.0.0.1:8000/api/comments/5/unlike/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxODkyMjI1LCJpYXQiOjE3NTE4OTE5MjUsImp0aSI6IjY5MDQ3Mzk3MDQyZjRmMzNiYjQ4MzAxOWZiNTU0ZWQ5IiwidXNlcl9pZCI6MX0.7Hgts1aDGRLyk2EUnOBDwa5Ur7UeRFrLg_X0bts-RSU
+
+
+ 

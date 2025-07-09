@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forum</title>
+    <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+    nav {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: #ffffff;
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 0 0 8px 8px;
+    }
+    nav a, nav button, nav span {
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    nav a:hover, nav button:hover {
+        color: #007BFF;
+    }
+    nav form {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+    }
+    nav input[type="text"] {
+        padding: 5px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    nav button[type="submit"] {
+        padding: 5px 8px;
+        margin-left: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #eee;
+    }
+    .messages {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+    }
+    .messages li {
+        padding: 10px;
+        margin-bottom: 5px;
+        border-radius: 4px;
+    }
+    .messages li.error { background: #ffdddd; border: 1px solid #ff5c5c; }
+    .messages li.success { background: #ddffdd; border: 1px solid #5cff5c; }
+    hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    {% if messages %}
+    <div class="container">
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <nav>
+        <a href="{% url 'home' %}">🏠 Home</a>
+
+        {% if user.is_authenticated %}
+            <span>👋 Hello,
+                <a href="{% url 'accounts:user_profile' username=user.username %}" style="font-weight: bold;">
+                    {{ user.username }}
+                </a>!
+            </span>
+            <a href="{% url 'accounts:profile_edit' %}">⚙️ Edit Profile</a>
+            <a href="{% url 'notifications' %}">🔔 Notifications</a>
+            <a href="{% url 'accounts:logout' %}">🚪 Logout</a>
+        {% else %}
+
+
+            <a href="{% url 'accounts:login' %}">🔐 Login</a>
+            <a href="{% url 'accounts:register' %}">📝 Register</a>
+        {% endif %}
+
+        <form method="get" action="{% url 'search_topics' %}">
+            <input type="text" name="q" placeholder="🔍 Search topics...">
+            <button type="submit">Go</button>
+        </form>
+    </nav>
+
+    <div class="container">
+        <hr>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

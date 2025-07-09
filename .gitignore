@@ -1,0 +1,13 @@
+# Virtual environment
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django media uploads
+media/
+
+# VSCode ayarları
+.vscode/
