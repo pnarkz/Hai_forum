@@ -27,23 +27,40 @@
     <form method="post" action="{% url 'accounts:register' %}" style="display:flex; flex-direction:column; gap:20px;">
       {% csrf_token %}
 
-      {{ form.username|label_with_icon:"👤"|safe }}
-      {{ form.username|add_class:"form-input"|add_placeholder:"Your username"|add_attr:"required" }}
+      {{ form.username
+         | label_with_icon:"👤"
+         | add_class:"form-input"
+         | add_placeholder:"Your username"
+         | add_attr:"required"
+      }}
       {{ form.username.errors }}
 
-      {{ form.email|label_with_icon:"📧"|safe }}
-      {{ form.email|add_class:"form-input"|add_placeholder:"Your email address"|add_attr:"required" }}
+      {{ form.email
+         | label_with_icon:"📧"
+         | add_class:"form-input"
+         | add_placeholder:"Your email address"
+         | add_attr:"required"
+      }}
       {{ form.email.errors }}
 
-      {{ form.password1|label_with_icon:"🔑"|safe }}
-      {{ form.password1|add_class:"form-input"|add_placeholder:"Create a password"|add_attr:"required" }}
+      {{ form.password1
+         | label_with_icon:"🔑"
+         | add_class:"form-input"
+         | add_placeholder:"Create a password"
+         | add_attr:"required"
+      }}
       {{ form.password1.errors }}
 
-      {{ form.password2|label_with_icon:"🔁"|safe }}
-      {{ form.password2|add_class:"form-input"|add_placeholder:"Repeat the password"|add_attr:"required" }}
+      {{ form.password2
+         | label_with_icon:"🔁"
+         | add_class:"form-input"
+         | add_placeholder:"Repeat the password"
+         | add_attr:"required"
+      }}
       {{ form.password2.errors }}
 
-      <button type="submit" style="background:#28a745; color:#fff; padding:12px 20px; border:none; border-radius:6px; font-size:16px; font-weight:bold; cursor:pointer;">
+      <button type="submit"
+              style="background:#28a745; color:#fff; padding:12px 20px; border:none; border-radius:6px; font-size:16px; font-weight:bold; cursor:pointer;">
         ✅ Register
       </button>
     </form>
@@ -55,3 +72,4 @@
   </div>
 </div>
 {% endblock %}
+
