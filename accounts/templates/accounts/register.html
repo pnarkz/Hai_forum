@@ -1,75 +1,132 @@
 {% extends 'base.html' %}
-{% load form_tags %}
+{% load static form_tags %}
 
 {% block content %}
-<div class="container" style="max-width:500px; margin:50px auto;">
-  <div class="card" style="padding:30px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+<style>
+  .form-input {
+    border: 2px solid #e0e0e0;
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin-top: 5px;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+  }
+  .error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  .error-box {
+    background: #ffebee;
+    border-left: 4px solid #e74c3c;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+  .btn-register {
+    background: #4CAF50;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+  }
+  .btn-register:hover {
+    background: #3e8e41;
+    transform: translateY(-2px);
+  }
+  .form-label {
+    font-weight: 600;
+    color: #333;
+    display: block;
+    margin-bottom: 8px;
+  }
+</style>
 
-    <h2 style="text-align:center; font-size:28px; margin-bottom:25px;">
-      📝 <span style="color:#333;">Create Your Account</span>
+<div class="container" style="max-width:500px; margin:50px auto;">
+  <div class="card" style="padding:40px; background:#fff; border-radius:16px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+    <h2 style="text-align:center; font-size:32px; margin-bottom:30px; color:#2c3e50;">
+      📝 Create Your Account
     </h2>
 
     {% if form.non_field_errors %}
-      <div style="background:#ffe6e6; border:1px solid #e74c3c; padding:10px; border-radius:6px; margin-bottom:20px;">
+      <div class="error-box">
         {% for err in form.non_field_errors %}
-          ❗ {{ err }}<br>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px;">❗</span>
+            <span>{{ err }}</span>
+          </div>
         {% endfor %}
       </div>
     {% endif %}
 
     {% if form.errors %}
-      <div style="background:#ffe6e6; border:1px solid #e74c3c; padding:10px; border-radius:6px; margin-bottom:20px;">
-        ❗ <strong>{{ form.errors|length }} error{{ form.errors|length|pluralize }} found:</strong>
-        Please fix the highlighted fields.
+      <div class="error-box">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="font-size:18px;">❗</span>
+          <strong>{{ form.errors|length }} error{{ form.errors|length|pluralize }} found</strong>
+        </div>
+        <p>Please correct the highlighted fields below.</p>
       </div>
     {% endif %}
 
     <form method="post" action="{% url 'accounts:register' %}" style="display:flex; flex-direction:column; gap:20px;">
       {% csrf_token %}
 
-      {{ form.username
-         | label_with_icon:"👤"
-         | add_class:"form-input"
-         | add_placeholder:"Your username"
-         | add_attr:"required"
-      }}
-      {{ form.username.errors }}
+      <div>
+        {{ form.username|label_with_icon:"👤"|safe }}
+        {{ form.username|add_class:"form-input"|add_placeholder:"Your username"|add_attr:"required:required,autofocus:autofocus" }}
+        {% if form.username.errors %}
+          <div class="error-message">{{ form.username.errors }}</div>
+        {% endif %}
+      </div>
 
-      {{ form.email
-         | label_with_icon:"📧"
-         | add_class:"form-input"
-         | add_placeholder:"Your email address"
-         | add_attr:"required"
-      }}
-      {{ form.email.errors }}
+      <div>
+        {{ form.email|label_with_icon:"📧"|safe }}
+        {{ form.email|add_class:"form-input"|add_placeholder:"Your email address"|add_attr:"required:required" }}
+        {% if form.email.errors %}
+          <div class="error-message">{{ form.email.errors }}</div>
+        {% endif %}
+      </div>
 
-      {{ form.password1
-         | label_with_icon:"🔑"
-         | add_class:"form-input"
-         | add_placeholder:"Create a password"
-         | add_attr:"required"
-      }}
-      {{ form.password1.errors }}
+      <div>
+        {{ form.password1|label_with_icon:"🔑"|safe }}
+        {{ form.password1|add_class:"form-input"|add_placeholder:"Create a password"|add_attr:"required:required" }}
+        {% if form.password1.errors %}
+          <div class="error-message">{{ form.password1.errors }}</div>
+        {% endif %}
+      </div>
 
-      {{ form.password2
-         | label_with_icon:"🔁"
-         | add_class:"form-input"
-         | add_placeholder:"Repeat the password"
-         | add_attr:"required"
-      }}
-      {{ form.password2.errors }}
+      <div>
+        {{ form.password2|label_with_icon:"🔁"|safe }}
+        {{ form.password2|add_class:"form-input"|add_placeholder:"Repeat the password"|add_attr:"required:required" }}
+        {% if form.password2.errors %}
+          <div class="error-message">{{ form.password2.errors }}</div>
+        {% endif %}
+      </div>
 
-      <button type="submit"
-              style="background:#28a745; color:#fff; padding:12px 20px; border:none; border-radius:6px; font-size:16px; font-weight:bold; cursor:pointer;">
-        ✅ Register
+      <button type="submit" class="btn-register">
+        ✅ Register Now
       </button>
     </form>
 
-    <p style="text-align:center; margin-top:25px;">
+    <p style="text-align:center; margin-top:25px; color:#555;">
       Already have an account?
-      <a href="{% url 'accounts:login' %}" style="color:#007BFF; font-weight:500;">🔐 Login</a>
+      <a href="{% url 'accounts:login' %}" style="color:#3498db; font-weight:600; text-decoration:none;">
+        🔐 Login here
+      </a>
     </p>
   </div>
 </div>
 {% endblock %}
-

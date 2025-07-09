@@ -15,12 +15,19 @@ def notify_topic_owner(sender, instance, created, **kwargs):
                 sender=User.objects.get(username=instance.author),
                 message=f"{instance.author} commented on your topic: {topic.title}",
                 url=f"/topic/{topic.id}/"
-            )
+)
+        
+
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-    else:
-        # Zaten varsa save et
-        if hasattr(instance, 'profile'):
-            instance.profile.save()
+    """
+    Ensure a UserProfile exists for each User.
+    On creation: create a new UserProfile.
+    On update: save existing profile or create if missing.
+    """
+    # Var olanı getir ya da oluştur
+    profile, was_created = UserProfile.objects.get_or_create(user=instance)
+    if not was_created:
+        # Zaten varsa, değişiklikleri kaydet
+        profile.save()
+

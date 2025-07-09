@@ -21,20 +21,12 @@
     <form method="post" action="{% url 'accounts:login' %}" style="display:flex; flex-direction:column; gap:20px;">
       {% csrf_token %}
 
-      {{ form.username
-         | label_with_icon:"👤"
-         | add_class:"form-input"
-         | add_placeholder:"Username"
-         | add_attr:"autofocus,required"
-      }}
+      {{ form.username|label_with_icon:"👤"|safe }}
+      {{ form.username|add_class:"form-input"|add_placeholder:"Username"|set_autofocus|set_required|safe }}
       {{ form.username.errors }}
 
-      {{ form.password
-         | label_with_icon:"🔑"
-         | add_class:"form-input"
-         | add_placeholder:"Password"
-         | add_attr:"required"
-      }}
+      {{ form.password|label_with_icon:"🔑"|safe }}
+      {{ form.password|add_class:"form-input"|add_placeholder:"Password"|set_required|safe }}
       {{ form.password.errors }}
 
       <button type="submit"

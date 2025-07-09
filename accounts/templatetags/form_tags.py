@@ -30,27 +30,26 @@ def set_required(field, val=True):
         return field.as_widget(attrs={"required": "required"})
     return field
 
+
 @register.filter(name='add_attr')
-def add_attr(field, args):
+def add_attr(field, attrs):
     """
-    Kullanım: {{ field|add_attr:"key1:value1,key2:value2" }}
-    Örneğin: {{ form.username|add_attr:"autofocus:autofocus,required:required" }}
+    Örnek kullanımlar:
+      {{ field|add_attr:"required" }}
+      {{ field|add_attr:"autofocus:autofocus,required:required,style:color:red" }}
     """
     if not isinstance(field, BoundField):
         return field
 
-    attr_dict = {}
-    for item in args.split(','):
-        if ':' in item:
-            key, val = item.split(':', 1)
+    widget_attrs = field.field.widget.attrs.copy()
+    for pair in attrs.split(','):
+        if ':' in pair:
+            key, val = pair.split(':', 1)
         else:
-            key, val = item, item
-        attr_dict[key.strip()] = val.strip()
-    # Mevcut widget attrs ile birleştir
-    existing_attrs = field.field.widget.attrs.copy()
-    existing_attrs.update(attr_dict)
-    return field.as_widget(attrs=existing_attrs)
+            key = val = pair
+        widget_attrs[key] = val
 
+    return field.as_widget(attrs=widget_attrs)
 @register.filter(name='label_with_icon')
 def label_with_icon(field, icon):
     if isinstance(field, BoundField):

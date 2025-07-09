@@ -12,16 +12,16 @@
     {% endif %}
   </h1>
 
-  <!-- Category Filter -->
+  <!-- Category Filter - DÜZELTİLMİŞ KISIM -->
   <div style="margin-bottom:30px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
     <span style="font-weight:600;">🔎 Filter by Category:</span>
     <a href="{% url 'topic_list' %}"
-       styl="padding:6px 12px; border-radius:6px; text-decoration:none; {{ not selected_category_id|yesno:'background:#7b1fa2;color:#fff;,background:#eee;color:#333;' }}">
+       styl="padding:6px 12px; border-radius:6px; text-decoration:none; {% if not selected_category_id %}background:#7b1fa2;color:#fff;{% else %}background:#eee;color:#333;{% endif %}">
       All
     </a>
     {% for category in categories %}
       <a href="{% url 'topics_by_category' category.id %}"
-         styl="padding:6px 12px; border-radius:6px; text-decoration:none; {{ selected_category_id == category.id|yesno:'background:#7b1fa2;color:#fff;,background:#eee;color:#333;' }}">
+         styl="padding:6px 12px; border-radius:6px; text-decoration:none; {% if selected_category_id == category.id %}background:#7b1fa2;color:#fff;{% else %}background:#eee;color:#333;{% endif %}">
         {{ category.name }}
       </a>
     {% endfor %}
@@ -85,10 +85,12 @@
               • 🕒 <time>{{ topic.date_created|date:"Y-m-d H:i" }}</time>
             </p>
           </div>
-          <a href="{% url 'topics_by_tag' topic.tags.all.0.slug %}"
-             style="background:#e1bee7; color:#4a148c; padding:4px 8px; border-radius:6px; text-decoration:none;">
-            #{{ topic.tags.all.0.name }}
-          </a>
+          {% if topic.tags.all %}
+            <a href="{% url 'topics_by_tag' topic.tags.all.0.slug %}"
+               style="background:#e1bee7; color:#4a148c; padding:4px 8px; border-radius:6px; text-decoration:none;">
+              #{{ topic.tags.all.0.name }}
+            </a>
+          {% endif %}
         </div>
       {% endfor %}
     </div>
