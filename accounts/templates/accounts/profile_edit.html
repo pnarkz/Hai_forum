@@ -79,11 +79,15 @@
       🎨 Customize Your <span style="color:#7b1fa2;">Profile</span>
     </h2>
 
-    {# Genel form hataları (parola eşleşmesi vs.) #}
+    {# Genel form hataları #}
     {% if u_form.non_field_errors or p_form.non_field_errors %}
       <ul class="messages" style="margin-bottom:20px;">
-        {% for err in u_form.non_field_errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
-        {% for err in p_form.non_field_errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+        {% for err in u_form.non_field_errors %}
+          <li class="error">❗ {{ err }}</li>
+        {% endfor %}
+        {% for err in p_form.non_field_errors %}
+          <li class="error">❗ {{ err }}</li>
+        {% endfor %}
       </ul>
     {% endif %}
 
@@ -91,10 +95,14 @@
     {% if u_form.errors or p_form.errors %}
       <ul class="messages" style="margin-bottom:20px;">
         {% for field in u_form %}
-          {% for err in field.errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+          {% for err in field.errors %}
+            <li class="error">❗ {{ err }}</li>
+          {% endfor %}
         {% endfor %}
         {% for field in p_form %}
-          {% for err in field.errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+          {% for err in field.errors %}
+            <li class="error">❗ {{ err }}</li>
+          {% endfor %}
         {% endfor %}
       </ul>
     {% endif %}
@@ -106,20 +114,34 @@
       <section class="section-card">
         <h3 class="section-header">🔐 Account Info</h3>
 
-        {{ u_form.username|label_with_icon:"👤"|safe }}
-        {{ u_form.username|add_class:"form-input"|add_placeholder:"Enter your username"|set_autofocus }}
-        
-        {{ u_form.email|label_with_icon:"📧"|safe }}
-        {{ u_form.email|add_class:"form-input"|add_placeholder:"Your email address" }}
-        
+        {{ u_form.username
+           |label_with_icon:"👤"|safe
+           |add_class:"form-input"
+           |add_placeholder:"Enter your username"
+           |add_attr:"autofocus:autofocus,required:required"
+        }}
+
+        {{ u_form.email
+           |label_with_icon:"📧"|safe
+           |add_class:"form-input"
+           |add_placeholder:"Your email address"
+           |add_attr:"required:required"
+        }}
+
         <div style="display:flex; gap:20px;">
           <div style="flex:1;">
-            {{ u_form.first_name|label_with_icon:"🪪"|safe }}
-            {{ u_form.first_name|add_class:"form-input"|add_placeholder:"First name" }}
+            {{ u_form.first_name
+               |label_with_icon:"🪪"|safe
+               |add_class:"form-input"
+               |add_placeholder:"First name"
+            }}
           </div>
           <div style="flex:1;">
-            {{ u_form.last_name|label_with_icon:"🧾"|safe }}
-            {{ u_form.last_name|add_class:"form-input"|add_placeholder:"Last name" }}
+            {{ u_form.last_name
+               |label_with_icon:"🧾"|safe
+               |add_class:"form-input"
+               |add_placeholder:"Last name"
+            }}
           </div>
         </div>
       </section>
@@ -138,28 +160,42 @@
           </div>
         </div>
 
-        {{ p_form.bio|label_with_icon:"📝"|safe }}
-        {{ p_form.bio|add_class:"form-textarea"|add_placeholder:"Tell us a bit about yourself..." }}
+        {{ p_form.bio
+           |label_with_icon:"📝"|safe
+           |add_class:"form-textarea"
+           |add_placeholder:"Tell us a bit about yourself..."
+        }}
 
-        {{ p_form.location|label_with_icon:"📍"|safe }}
-        {{ p_form.location|add_class:"form-input"|add_placeholder:"Your location" }}
+        {{ p_form.location
+           |label_with_icon:"📍"|safe
+           |add_class:"form-input"
+           |add_placeholder:"Your location"
+        }}
 
-        {{ p_form.website|label_with_icon:"🌐"|safe }}
-        {{ p_form.website|add_class:"form-input"|add_placeholder:"Your personal website" }}
+        {{ p_form.website
+           |label_with_icon:"🌐"|safe
+           |add_class:"form-input"
+           |add_placeholder:"Your personal website"
+        }}
 
-        {{ p_form.twitter|label_with_icon:"🐦"|safe }}
-        {{ p_form.twitter|add_class:"form-input"|add_placeholder:"Twitter profile link" }}
+        {{ p_form.twitter
+           |label_with_icon:"🐦"|safe
+           |add_class:"form-input"
+           |add_placeholder:"Twitter profile link"
+        }}
 
-        {{ p_form.linkedin|label_with_icon:"🔗"|safe }}
-        {{ p_form.linkedin|add_class:"form-input"|add_placeholder:"LinkedIn profile link" }}
+        {{ p_form.linkedin
+           |label_with_icon:"🔗"|safe
+           |add_class:"form-input"
+           |add_placeholder:"LinkedIn profile link"
+        }}
       </section>
 
       <!-- Submit Button -->
       <button type="submit" class="btn-save">💾 Save Changes</button>
 
       <p style="text-align:center; margin-top:15px;">
-        <a href="{% url 'accounts:user_profile' username=request.user.username %}"
-           style="color:#2196F3; text-decoration:none;">← Back to Profile</a>
+        <a href="{% url 'accounts:user_profile' username=request.user.username %}" style="color:#2196F3; text-decoration:none;">← Back to Profile</a>
       </p>
     </form>
   </div>
@@ -171,9 +207,7 @@
   if (input) {
     input.addEventListener('change', function () {
       const [file] = input.files;
-      if (file) {
-        preview.src = URL.createObjectURL(file);
-      }
+      if (file) preview.src = URL.createObjectURL(file);
     });
   }
 </script>
