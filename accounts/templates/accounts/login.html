@@ -7,7 +7,7 @@
 
     <h1 style="text-align:center; margin-bottom:25px; color:#4a148c;">🔐 Login</h1>
 
-    {# Non-field errors (e.g. “Please enter a correct username and password”) #}
+    {# Non-field errors #}
     {% if form.non_field_errors %}
       <ul class="messages" style="margin-bottom:20px;">
         {% for err in form.non_field_errors %}
@@ -21,12 +21,20 @@
     <form method="post" action="{% url 'accounts:login' %}" style="display:flex; flex-direction:column; gap:20px;">
       {% csrf_token %}
 
-      {{ form.username|label_with_icon:"👤"|safe }}
-      {{ form.username|add_class:"form-input"|add_placeholder:"Username"|add_attr:"autofocus,required" }}
+      {{ form.username
+         | label_with_icon:"👤"
+         | add_class:"form-input"
+         | add_placeholder:"Username"
+         | add_attr:"autofocus,required"
+      }}
       {{ form.username.errors }}
 
-      {{ form.password|label_with_icon:"🔑"|safe }}
-      {{ form.password|add_class:"form-input"|add_placeholder:"Password"|add_attr:"required" }}
+      {{ form.password
+         | label_with_icon:"🔑"
+         | add_class:"form-input"
+         | add_placeholder:"Password"
+         | add_attr:"required"
+      }}
       {{ form.password.errors }}
 
       <button type="submit"
@@ -41,6 +49,7 @@
         📝 Register
       </a>
     </p>
+
   </div>
 </div>
 {% endblock %}
