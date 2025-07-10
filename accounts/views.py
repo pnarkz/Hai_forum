@@ -14,16 +14,85 @@ from .forms import UserUpdateForm, ProfileUpdateForm
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
-def register_view(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from .forms import SignUpForm
+
+
+from django.shortcuts import render
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
+
+def signup(request):
+    if request.method == "POST":
+        form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Your account has been created. You can now log in.')
-            return redirect('accounts:login')
+            # commit=False ile önce user örneğini alıp is_active=False yapıyoruz
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+
+            current_site = get_current_site(request)
+            # Burada kesinlikle 'uidb64' anahtarı ve value'su olmalı
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+
+            context = {
+                "user": user,
+                "domain": current_site.domain,
+                "protocol": "https" if request.is_secure() else "http",
+                "uidb64": uidb64,     # <-- işte burası
+                "token": token,
+            }
+
+            subject = "Hesabınızı Aktifleştirin"
+            from_email = None  # DEFAULT_FROM_EMAIL kullanılacak
+
+            text_body = render_to_string(
+                "registration/account_activation_email.txt", context
+            )
+            html_body = render_to_string(
+                "registration/account_activation_email.html", context
+            )
+
+            msg = EmailMultiAlternatives(subject, text_body, from_email, [user.email])
+            msg.attach_alternative(html_body, "text/html")
+            msg.send()
+
+            return render(request, "registration/account_activation_sent.html")
     else:
-        form = UserCreationForm()
-    return render(request, 'accounts/register.html', {'form': form})
+        form = SignUpForm()
+
+    return render(request, "registration/signup.html", {"form": form})
+
+    return render(request, "registration/signup.html", {"form": form})
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return render(request, "registration/account_activation_complete.html")
+    else:
+        return render(request, "registration/account_activation_invalid.html")
+
+
 
 def login_view(request):
     if request.method == 'POST':

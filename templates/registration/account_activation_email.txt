@@ -1,0 +1,11 @@
+Merhaba {{ user.username }},
+
+Hesabınızı aktifleştirmek için lütfen aşağıdaki linke tıklayın:
+{{ protocol }}://{{ domain }}{% url 'accounts:activate' uidb64=uidb64 token=token %}
+
+Bu link 24 saat geçerli olacaktır.
+
+Eğer bu e-postayı siz talep etmediyseniz, bu mesajı göz ardı edebilirsiniz.
+
+Teşekkürler,
+Yapay Zekâ Forumu Ekibi

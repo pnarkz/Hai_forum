@@ -78,7 +78,7 @@ ROOT_URLCONF = 'forumprojesi.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [ BASE_DIR / 'templates' ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -102,6 +102,18 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+"""
+# settings.py içinde – test için
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+"""
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'pnarkocagoz@gmail.com'
+EMAIL_HOST_PASSWORD = 'edinfcginhndyrcr'
+DEFAULT_FROM_EMAIL = '“Yapay Zekâ Forumu” <your@gmail.com>'
 
 
 # Password validation
@@ -130,7 +142,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Europe/Istanbul'
 STATICFILES_DIRS = [ BASE_DIR / "static" ]
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 USE_I18N = True
 
