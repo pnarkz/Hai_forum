@@ -22,6 +22,7 @@ schema_view = swagger_view(
     ),
     public=True,
     permission_classes=[permissions.AllowAny],
+    authentication_classes=[],
 )
 
 urlpatterns = [

@@ -3,24 +3,27 @@
 {% block content %}
 <div class="container" style="max-width:800px; margin:40px auto;">
 
+  <!-- Başlık -->
   <h1 style="font-size:2rem; margin-bottom:20px; color:#4a148c;">🗑️ Trash Bin</h1>
-  <p style="color:#555; margin-bottom:30px;">Your deleted topics and comments from the last 30 days—restore them if you change your mind.</p>
+  <p style="color:#555; margin-bottom:30px;">
+    Your deleted topics and comments from the last 30 days — restore them if needed.
+  </p>
 
-  <!-- Deleted Topics -->
-  <div class="card" style="padding:20px; margin-bottom:30px; border-radius:8px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-    <h2 style="font-size:1.5rem; margin-bottom:15px; color:#333;">🧵 Deleted Topics</h2>
+  <!-- Silinen Konular -->
+  <div class="card" style="padding:24px; margin-bottom:30px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+    <h2 style="font-size:1.4rem; margin-bottom:18px; color:#333;">🧵 Deleted Topics</h2>
     {% if deleted_topics %}
       <ul style="list-style:none; padding:0; margin:0;">
         {% for topic in deleted_topics %}
-          <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
+          <li style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;">
             <div>
               <strong>{{ topic.title }}</strong><br>
-              <small style="color:#888;">Deleted at {{ topic.deleted_at|date:"Y-m-d H:i" }}</small>
+              <small style="color:#888;">🗓️ Deleted at {{ topic.deleted_at|date:"Y-m-d H:i" }}</small>
             </div>
             <form method="post" action="{% url 'restore_topic' topic.id %}" style="margin:0;">
               {% csrf_token %}
               <button type="submit"
-                      style="background:#28a745; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                      style="background:#2e7d32; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:500; cursor:pointer;">
                 🔁 Restore
               </button>
             </form>
@@ -32,21 +35,21 @@
     {% endif %}
   </div>
 
-  <!-- Deleted Comments -->
-  <div class="card" style="padding:20px; margin-bottom:30px; border-radius:8px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-    <h2 style="font-size:1.5rem; margin-bottom:15px; color:#333;">💬 Deleted Comments</h2>
+  <!-- Silinen Yorumlar -->
+  <div class="card" style="padding:24px; margin-bottom:30px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+    <h2 style="font-size:1.4rem; margin-bottom:18px; color:#333;">💬 Deleted Comments</h2>
     {% if deleted_comments %}
       <ul style="list-style:none; padding:0; margin:0;">
         {% for comment in deleted_comments %}
-          <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
+          <li style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;">
             <div>
               <span style="color:#333;">“{{ comment.content|truncatechars:60 }}”</span><br>
-              <small style="color:#888;">Deleted at {{ comment.deleted_at|date:"Y-m-d H:i" }}</small>
+              <small style="color:#888;">🗓️ Deleted at {{ comment.deleted_at|date:"Y-m-d H:i" }}</small>
             </div>
             <form method="post" action="{% url 'restore_comment' comment.id %}" style="margin:0;">
               {% csrf_token %}
               <button type="submit"
-                      style="background:#28a745; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                      style="background:#2e7d32; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:500; cursor:pointer;">
                 🔁 Restore
               </button>
             </form>
@@ -58,8 +61,9 @@
     {% endif %}
   </div>
 
+  <!-- Geri Dön -->
   <p style="text-align:right; margin-top:20px;">
-    <a href="{% url 'accounts:my_profile' %}"
+    <a href="{% url 'accounts:my_profile' %}" 
        style="text-decoration:none; color:#007BFF; font-weight:500;">
       ← Back to Profile
     </a>

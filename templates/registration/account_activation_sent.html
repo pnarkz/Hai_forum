@@ -1,6 +1,23 @@
 {% extends "base.html" %}
-
 {% block content %}
-  <h2>Aktivasyon E-postası Gönderildi</h2>
-  <p>Kaydınızı tamamlamak için lütfen e-posta gelen kutunuzu kontrol edin.</p>
+<div class="container" style="max-width:500px; margin:50px auto;">
+  <div class="card" style="padding:30px; border-radius:12px; background:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.05); text-align:center;">
+
+    <h2 style="color:#4a148c; margin-bottom:15px;">📩 Aktivasyon E-postası Gönderildi</h2>
+    <p style="color:#333; font-size:16px; margin-bottom:25px;">
+      Kaydınızı tamamlamak için lütfen e-posta gelen kutunuzu kontrol edin.
+    </p>
+    <p style="color:#777; font-size:14px;">
+      E-postayı göremiyorsanız, <strong>spam</strong> klasörünüzü de kontrol edin.
+    </p>
+    
+    <div style="margin-top:30px;">
+      <a href="{% url 'home' %}" 
+         style="padding:10px 20px; background:#007BFF; color:#fff; border-radius:8px; text-decoration:none; font-weight:500;">
+        🔙 Ana Sayfaya Dön
+      </a>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

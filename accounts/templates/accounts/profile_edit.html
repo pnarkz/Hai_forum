@@ -2,165 +2,104 @@
 {% load static form_tags %}
 
 {% block content %}
-<style>
-  .form-label {
-    font-weight: 600;
-    color: #4a4a4a;
-    margin-bottom: 5px;
-  }
-  .form-input,
-  .form-textarea {
-    border: none;
-    border-bottom: 2px solid #ccc;
-    width: 100%;
-    padding: 8px 5px;
-    font-size: 16px;
-    background-color: transparent;
-    transition: border-color 0.3s ease;
-  }
-  .form-input:focus,
-  .form-textarea:focus {
-    outline: none;
-    border-bottom: 2px solid #7b1fa2;
-  }
-  .section-card {
-    background: #fff;
-    padding: 25px;
-    border-radius: 16px;
-    border-left: 5px solid #2196F3;
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
-  }
-  .section-card.purple {
-    border-left-color: #9C27B0;
-  }
-  .section-header {
-    font-size: 22px;
-    color: #333;
-    margin-bottom: 20px;
-    font-weight: bold;
-  }
-  .avatar-preview {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #ccc;
-  }
-  .btn-save {
-    background: #4CAF50;
-    color: white;
-    padding: 14px 28px;
-    border: none;
-    border-radius: 10px;
-    font-size: 17px;
-    font-weight: 600;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: background 0.3s;
-  }
-  .btn-save:hover {
-    background: #388E3C;
-  }
-  .messages li.error {
-    background: #ffdddd;
-    border: 1px solid #ff5c5c;
-    color: #a94442;
-  }
-  .messages li.success {
-    background: #ddffdd;
-    border: 1px solid #5cff5c;
-    color: #31708f;
-  }
-</style>
+<div class="max-w-2xl mx-auto px-4 py-10">
+  <div class="bg-white shadow-md rounded-xl p-8">
 
-<div class="container" style="max-width:850px; margin:50px auto;">
-  <div class="card" style="padding:40px; background:linear-gradient(to bottom right, #fefefe, #eef7fb); border-radius:16px; box-shadow:0 12px 25px rgba(0,0,0,0.05);">
-
-    <h2 style="text-align:center; font-size:32px; margin-bottom:35px; font-weight:bold; color:#4a148c;">
-      🎨 Customize Your <span style="color:#7b1fa2;">Profile</span>
+    <h2 class="text-3xl text-center font-bold text-purple-800 mb-8">
+      🎨 Customize Your <span class="text-purple-600">Profile</span>
     </h2>
 
-    {# Genel form hataları (parola eşleşmesi vs.) #}
+    {# Genel form hataları #}
     {% if u_form.non_field_errors or p_form.non_field_errors %}
-      <ul class="messages" style="margin-bottom:20px;">
-        {% for err in u_form.non_field_errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
-        {% for err in p_form.non_field_errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+      <ul class="mb-4 space-y-2">
+        {% for err in u_form.non_field_errors %}<li class="bg-red-100 text-red-700 p-3 rounded">{{ err }}</li>{% endfor %}
+        {% for err in p_form.non_field_errors %}<li class="bg-red-100 text-red-700 p-3 rounded">{{ err }}</li>{% endfor %}
       </ul>
     {% endif %}
 
     {# Alan bazlı hatalar #}
     {% if u_form.errors or p_form.errors %}
-      <ul class="messages" style="margin-bottom:20px;">
+      <ul class="mb-4 space-y-2">
         {% for field in u_form %}
-          {% for err in field.errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+          {% for err in field.errors %}
+            <li class="bg-red-50 border-l-4 border-red-400 text-red-800 p-2 rounded">{{ err }}</li>
+          {% endfor %}
         {% endfor %}
         {% for field in p_form %}
-          {% for err in field.errors %}<li class="error">❗ {{ err }}</li>{% endfor %}
+          {% for err in field.errors %}
+            <li class="bg-red-50 border-l-4 border-red-400 text-red-800 p-2 rounded">{{ err }}</li>
+          {% endfor %}
         {% endfor %}
       </ul>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data" action="{% url 'accounts:profile_edit' %}" style="display:flex; flex-direction:column; gap:35px;">
+    <form method="post" enctype="multipart/form-data" action="{% url 'accounts:profile_edit' %}" class="space-y-8">
       {% csrf_token %}
 
-      <!-- Account Info -->
-      <section class="section-card">
-        <h3 class="section-header">🔐 Account Info</h3>
+      <!-- 🔐 Account Info -->
+      <section>
+        <h3 class="text-xl font-semibold mb-4 text-blue-700">🔐 Account Info</h3>
 
         {{ u_form.username|label_with_icon:"👤"|safe }}
-        {{ u_form.username|add_class:"form-input"|add_placeholder:"Enter your username"|add_attr:"autofocus:autofocus,required:required" }}
-        
+        {{ u_form.username|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Enter your username"|set_autofocus|set_required|safe }}
+
         {{ u_form.email|label_with_icon:"📧"|safe }}
-        {{ u_form.email|add_class:"form-input"|add_placeholder:"Your email address"|add_attr:"required:required" }}
-        
-        <div style="display:flex; gap:20px;">
-          <div style="flex:1;">
+        {{ u_form.email|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Your email"|set_required|safe }}
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="w-full">
             {{ u_form.first_name|label_with_icon:"🪪"|safe }}
-            {{ u_form.first_name|add_class:"form-input"|add_placeholder:"First name" }}
+            {{ u_form.first_name|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"First name"|safe }}
           </div>
-          <div style="flex:1;">
+          <div class="w-full">
             {{ u_form.last_name|label_with_icon:"🧾"|safe }}
-            {{ u_form.last_name|add_class:"form-input"|add_placeholder:"Last name" }}
+            {{ u_form.last_name|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Last name"|safe }}
           </div>
         </div>
       </section>
 
-      <!-- Profile Details -->
-      <section class="section-card purple">
-        <h3 class="section-header">🖼️ Profile Details</h3>
+      <!-- 🖼️ Profile Details -->
+      <section>
+        <h3 class="text-xl font-semibold mb-4 text-purple-700">🖼️ Profile Details</h3>
 
-        <div style="display:flex; gap:20px; align-items:center;">
+        <div class="flex items-center gap-5 mb-4">
           <img id="avatarPreview"
                src="{% if profile_picture_url %}{{ profile_picture_url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
-               alt="Avatar Preview" class="avatar-preview">
-          <div style="flex:1;">
+               alt="Avatar Preview"
+               class="w-24 h-24 rounded-full object-cover border border-gray-300">
+          <div class="flex-1">
             {{ p_form.profile_picture|label_with_icon:"📷 Profile Picture"|safe }}
             {{ p_form.profile_picture }}
           </div>
         </div>
 
         {{ p_form.bio|label_with_icon:"📝"|safe }}
-        {{ p_form.bio|add_class:"form-textarea"|add_placeholder:"Tell us a bit about yourself..." }}
+        {{ p_form.bio|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Tell us a bit about yourself..."|safe }}
 
         {{ p_form.location|label_with_icon:"📍"|safe }}
-        {{ p_form.location|add_class:"form-input"|add_placeholder:"Your location" }}
+        {{ p_form.location|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Your location"|safe }}
 
         {{ p_form.website|label_with_icon:"🌐"|safe }}
-        {{ p_form.website|add_class:"form-input"|add_placeholder:"Your personal website" }}
+        {{ p_form.website|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Website URL"|safe }}
 
         {{ p_form.twitter|label_with_icon:"🐦"|safe }}
-        {{ p_form.twitter|add_class:"form-input"|add_placeholder:"Twitter profile link" }}
+        {{ p_form.twitter|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Twitter URL"|safe }}
 
         {{ p_form.linkedin|label_with_icon:"🔗"|safe }}
-        {{ p_form.linkedin|add_class:"form-input"|add_placeholder:"LinkedIn profile link" }}
+        {{ p_form.linkedin|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"LinkedIn URL"|safe }}
       </section>
 
-      <!-- Submit Button -->
-      <button type="submit" class="btn-save">💾 Save Changes</button>
-
-      <p style="text-align:center; margin-top:15px;">
-        <a href="{% url 'accounts:user_profile' username=request.user.username %}"
-           style="color:#2196F3; text-decoration:none;">← Back to Profile</a>
-      </p>
+      <!-- 💾 Submit -->
+      <div class="text-center">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+          💾 Save Changes
+        </button>
+        <p class="mt-4 text-sm">
+          <a href="{% url 'accounts:user_profile' username=request.user.username %}" class="text-blue-600 hover:underline">
+            ← Back to Profile
+          </a>
+        </p>
+      </div>
     </form>
   </div>
 </div>

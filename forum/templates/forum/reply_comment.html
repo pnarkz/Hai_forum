@@ -1,11 +1,75 @@
 {% extends 'base.html' %}
+{% load form_tags %}
+
 {% block content %}
-  <h2>Reply to:</h2>
-  <blockquote>{{ parent.content }}</blockquote>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Post Reply</button>
-  </form>
-  <a href="{% url 'topic_detail' topic.id %}">← Back to Topic</a>
+<style>
+  .form-label {
+    font-weight: 600;
+    color: #4a4a4a;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .form-textarea {
+    border: none;
+    border-bottom: 2px solid #999;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: transparent;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.3s ease;
+  }
+  .form-textarea:focus {
+    outline: none;
+    border-bottom: 2px solid #007BFF;
+  }
+  .btn-reply {
+    background-color: #6c63ff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .btn-reply:hover {
+    background-color: #5548db;
+  }
+  blockquote {
+    background: #f9f9f9;
+    border-left: 4px solid #ccc;
+    padding: 10px 20px;
+    font-style: italic;
+    color: #555;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+</style>
+
+<div class="container" style="max-width:720px; margin:40px auto;">
+  <div class="card" style="padding:30px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+
+    <h2 style="font-size:1.6rem; color:#4a148c; margin-bottom:20px;">↪️ Reply to Comment</h2>
+
+    <blockquote>{{ parent.content }}</blockquote>
+
+    <form method="post" style="display:flex; flex-direction:column; gap:20px;">
+      {% csrf_token %}
+
+      <label for="id_content" class="form-label">💬 Your Reply</label>
+      {{ form.content|add_class:"form-textarea"|add_placeholder:"Write your reply..." }}
+
+      <button type="submit" class="btn-reply">💬 Post Reply</button>
+    </form>
+
+    <p style="margin-top:25px;">
+      <a href="{% url 'topic_detail' topic.id %}" style="color:#007BFF; text-decoration:none; font-weight:500;">
+        ← Back to Topic
+      </a>
+    </p>
+
+  </div>
+</div>
 {% endblock %}

@@ -2,105 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Forum</title>
-    <style>
-    html { scroll-behavior: smooth; }
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
-    .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
-    nav {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        background: #ffffff;
-        padding: 10px 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border-radius: 0 0 8px 8px;
-    }
-    nav a, nav button, nav span {
-        text-decoration: none;
-        color: #333;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: none;
-        border: none;
-        cursor: pointer;
-    }
-    nav a:hover, nav button:hover {
-        color: #007BFF;
-    }
-    nav form {
-        margin-left: auto;
-        display: flex;
-        align-items: center;
-    }
-    nav input[type="text"] {
-        padding: 5px 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-    nav button[type="submit"] {
-        padding: 5px 8px;
-        margin-left: 5px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: #eee;
-    }
-    .messages {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 20px 0;
-    }
-    .messages li {
-        padding: 10px;
-        margin-bottom: 5px;
-        border-radius: 4px;
-    }
-    .messages li.error { background: #ffdddd; border: 1px solid #ff5c5c; }
-    .messages li.success { background: #ddffdd; border: 1px solid #5cff5c; }
-    hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
-    </style>
+    <title>{% block title %}Hai Forum{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- ✅ Mesajlar -->
     {% if messages %}
-    <div class="container">
-        <ul class="messages">
+    <div class="container mx-auto px-4 mt-4">
+        <ul>
             {% for message in messages %}
-                <li class="{{ message.tags }}">{{ message }}</li>
+                <li class="p-4 mb-2 rounded {{ message.tags }} 
+                           {% if message.tags == 'success' %}bg-green-100 border border-green-400 text-green-800{% endif %}
+                           {% if message.tags == 'error' %}bg-red-100 border border-red-400 text-red-800{% endif %}">
+                    {{ message }}
+                </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
 
-    <nav>
-        <a href="{% url 'home' %}">🏠 Home</a>
+    <!-- ✅ Navigation Bar -->
+    <nav class="bg-white shadow-md py-3 px-4 sm:px-6">
+        <div class="container mx-auto flex flex-wrap justify-between items-center gap-3">
 
-        {% if user.is_authenticated %}
-            <span>👋 Hello,
-                <a href="{% url 'accounts:user_profile' username=user.username %}" style="font-weight: bold;">
-                    {{ user.username }}
-                </a>!
-            </span>
-            <a href="{% url 'accounts:profile_edit' %}">⚙️ Edit Profile</a>
-            <a href="{% url 'notifications' %}">🔔 Notifications</a>
-            <a href="{% url 'accounts:logout' %}">🚪 Logout</a>
-        {% else %}
+            <!-- Sol -->
+            <div class="flex items-center gap-4">
+                <a href="{% url 'home' %}" class="font-bold text-blue-600 hover:underline">🏠 Home</a>
+            </div>
 
+            <!-- Orta (Giriş yapmış kullanıcı için) -->
+            <div class="flex flex-wrap items-center gap-3 text-sm sm:text-base">
+                {% if user.is_authenticated %}
+                    <span>
+                        👋 Hello,
+                        <a href="{% url 'accounts:user_profile' username=user.username %}" class="font-semibold text-gray-700 hover:underline">
+                            {{ user.username }}
+                        </a>
+                    </span>
+                    <a href="{% url 'accounts:profile_edit' %}" class="hover:text-blue-600">⚙️ Edit Profile</a>
+                    <a href="{% url 'notifications' %}" class="hover:text-blue-600">🔔 Notifications</a>
+                    <a href="{% url 'accounts:logout' %}" class="hover:text-red-600">🚪 Logout</a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="hover:text-blue-600">🔐 Login</a>
+                    <a href="{% url 'accounts:signup' %}" class="hover:text-blue-600">📝 Sign Up</a>
+                {% endif %}
+            </div>
 
-            <a href="{% url 'accounts:login' %}">🔐 Login</a>
-            <a href="{% url 'accounts:signup' %}">📝 Sing up</a>
-        {% endif %}
-
-        <form method="get" action="{% url 'search_topics' %}">
-            <input type="text" name="q" placeholder="🔍 Search topics...">
-            <button type="submit">Go</button>
-        </form>
+            <!-- Sağ (Arama formu) -->
+            <form method="get" action="{% url 'search_topics' %}" class="flex items-center gap-2 mt-2 sm:mt-0">
+                <input type="text" name="q" placeholder="🔍 Search topics..."
+                    class="px-3 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm">
+                <button type="submit"
+                    class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">Go</button>
+            </form>
+        </div>
     </nav>
 
-    <div class="container">
-        <hr>
+    <!-- ✅ İçerik -->
+    <main class="flex-1 container mx-auto px-4 py-6">
         {% block content %}{% endblock %}
-    </div>
+    </main>
+
+    <!-- ✅ Footer -->
+    <footer class="bg-white border-t py-4 text-center text-sm text-gray-500">
+        © 2025 Hai Forum
+    </footer>
+
 </body>
 </html>

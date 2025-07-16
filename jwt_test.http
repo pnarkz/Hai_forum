@@ -48,4 +48,28 @@ POST http://127.0.0.1:8000/api/comments/5/unlike/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyMDg3MjYyLCJpYXQiOjE3NTIwODY5NjIsImp0aSI6IjAwMTVjZWU0ZjA3NTRmYWQ5MmZkMzkyZTU5ZTRjZGRjIiwidXNlcl9pZCI6MX0.NMSTAKfeUwYH7TDX6OsrI8-WIUFJMxINjzoAQ2OkonE
 
 
- 
+ ### 📌 Topic Like
+POST http://127.0.0.1:8000/api/topics/1/like/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNjgwNjA5LCJpYXQiOjE3NTI2ODAzMDksImp0aSI6IjNlYWQwY2RmYjgyNTRjNGY4ZWEyNDMxNDhlNzZkNjU5IiwidXNlcl9pZCI6OH0.3IJEUQned1IX_C8Vul45nw9tlsjEBgY3hquZZ0zeok4
+
+### 📌 Topic Unlike
+POST http://127.0.0.1:8000/api/topics/1/unlike/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNjgwNjA5LCJpYXQiOjE3NTI2ODAzMDksImp0aSI6IjNlYWQwY2RmYjgyNTRjNGY4ZWEyNDMxNDhlNzZkNjU5IiwidXNlcl9pZCI6OH0.3IJEUQned1IX_C8Vul45nw9tlsjEBgY3hquZZ0zeok4
+
+### 📌 Kullanıcının beğendiği tüm Topic'ler
+GET http://127.0.0.1:8000/api/topics/liked/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNjgwNjA5LCJpYXQiOjE3NTI2ODAzMDksImp0aSI6IjNlYWQwY2RmYjgyNTRjNGY4ZWEyNDMxNDhlNzZkNjU5IiwidXNlcl9pZCI6OH0.3IJEUQned1IX_C8Vul45nw9tlsjEBgY3hquZZ0zeok4
+
+
+
+### 💬 Comment Like
+POST http://127.0.0.1:8000/api/comments/5/like/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNjgwNjA5LCJpYXQiOjE3NTI2ODAzMDksImp0aSI6IjNlYWQwY2RmYjgyNTRjNGY4ZWEyNDMxNDhlNzZkNjU5IiwidXNlcl9pZCI6OH0.3IJEUQned1IX_C8Vul45nw9tlsjEBgY3hquZZ0zeok4
+
+### 💬 Comment Unlike
+POST http://127.0.0.1:8000/api/comments/5/unlike/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNjgwNjA5LCJpYXQiOjE3NTI2ODAzMDksImp0aSI6IjNlYWQwY2RmYjgyNTRjNGY4ZWEyNDMxNDhlNzZkNjU5IiwidXNlcl9pZCI6OH0.3IJEUQned1IX_C8Vul45nw9tlsjEBgY3hquZZ0zeok4
+
+### 💬 Kullanıcının beğendiği tüm Comment'lar
+GET http://127.0.0.1:8000/api/comments/liked/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNjgwNjA5LCJpYXQiOjE3NTI2ODAzMDksImp0aSI6IjNlYWQwY2RmYjgyNTRjNGY4ZWEyNDMxNDhlNzZkNjU5IiwidXNlcl9pZCI6OH0.3IJEUQned1IX_C8Vul45nw9tlsjEBgY3hquZZ0zeok4

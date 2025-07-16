@@ -2,50 +2,48 @@
 {% load form_tags %}
 
 {% block content %}
-<div class="container" style="max-width:400px; margin:40px auto;">
-  <div class="card" style="padding:30px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+<div class="max-w-sm mx-auto px-4 py-10">
+  <div class="bg-white shadow-md rounded-xl p-6">
 
-    <h1 style="text-align:center; margin-bottom:25px; color:#4a148c;">🔐 Login</h1>
+    <h1 class="text-center text-2xl font-bold text-purple-800 mb-6">🔐 Login</h1>
 
     {# Non-field errors #}
     {% if form.non_field_errors %}
-      <ul class="messages" style="margin-bottom:20px;">
+      <ul class="space-y-2 mb-4">
         {% for err in form.non_field_errors %}
-          <li class="error" style="background:#ffe6e6; border:1px solid #e74c3c; padding:10px; border-radius:6px; color:#a94442;">
+          <li class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
             ❗ {{ err }}
           </li>
         {% endfor %}
       </ul>
     {% endif %}
 
-    <form method="post" action="{% url 'accounts:login' %}" style="display:flex; flex-direction:column; gap:20px;">
+    <form method="post" action="{% url 'accounts:login' %}" class="space-y-5">
       {% csrf_token %}
 
       {{ form.username|label_with_icon:"👤"|safe }}
-      {{ form.username|add_class:"form-input"|add_placeholder:"Username"|set_autofocus|set_required|safe }}
+      {{ form.username|add_class:"w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"|add_placeholder:"Username"|set_autofocus|set_required|safe }}
       {{ form.username.errors }}
 
       {{ form.password|label_with_icon:"🔑"|safe }}
-      {{ form.password|add_class:"form-input"|add_placeholder:"Password"|set_required|safe }}
+      {{ form.password|add_class:"w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"|add_placeholder:"Password"|set_required|safe }}
       {{ form.password.errors }}
 
       <button type="submit"
-              style="background:#007BFF; color:#fff; padding:12px; border:none; border-radius:6px; font-size:16px; cursor:pointer;">
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition">
         🔓 Login
       </button>
     </form>
 
-    {# 🆘 Şifre sıfırlama linki #}
-    <p style="text-align:center; margin-top:15px;">
-      <a href="{% url 'accounts:password_reset' %}"
-         style="color:#e67e22; font-weight:600; text-decoration:none;">
-        🔄 Şifremi Unuttum?
+    <p class="text-center mt-4">
+      <a href="{% url 'accounts:password_reset' %}" class="text-orange-600 hover:underline font-medium">
+        🔄 Forgot Password?
       </a>
     </p>
 
-    <p style="text-align:center; margin-top:20px; color:#555;">
+    <p class="text-center mt-4 text-sm text-gray-600">
       Don’t have an account?
-      <a href="{% url 'accounts:signup' %}" style="color:#007BFF; font-weight:500; text-decoration:none;">
+      <a href="{% url 'accounts:signup' %}" class="text-blue-600 font-semibold hover:underline">
         📝 Sign up
       </a>
     </p>

@@ -1,11 +1,13 @@
 Merhaba {{ user.username }},
 
-Hesabınızı aktifleştirmek için lütfen aşağıdaki linke tıklayın:
+🎉 Yapay Zekâ Forumu'na hoş geldiniz!
+
+Hesabınızı aktifleştirmek için aşağıdaki bağlantıya tıklayın:
 {{ protocol }}://{{ domain }}{% url 'accounts:activate' uidb64=uidb64 token=token %}
 
-Bu link 24 saat geçerli olacaktır.
+⚠️ Bu bağlantı 24 saat boyunca geçerlidir.
 
-Eğer bu e-postayı siz talep etmediyseniz, bu mesajı göz ardı edebilirsiniz.
+Eğer bu isteği siz yapmadıysanız, bu mesajı güvenle yok sayabilirsiniz.
 
-Teşekkürler,
-Yapay Zekâ Forumu Ekibi
+İyi forumlar dileriz!  
+HAI Ekibi

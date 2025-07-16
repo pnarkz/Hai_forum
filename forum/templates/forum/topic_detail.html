@@ -1,23 +1,27 @@
-{# templates/forum/topic_detail.html #}
 {% extends 'base.html' %}
 {% block content %}
-<div class="container" style="max-width:850px; margin:30px auto;">
-  <div class="card p-4 mb-4">
-    <h1 class="text-2xl text-purple-800 mb-2">📝 {{ topic.title }}</h1>
-    <p><strong>📁 Category:</strong> {{ topic.category.name }}</p>
-    <p><strong>👤 Author:</strong>
-      <a href="{% url 'accounts:user_profile' username=topic.author.username %}" class="font-bold text-purple-600">
+<div class="max-w-3xl mx-auto px-4 py-6">
+
+  <!-- 📝 Topic Info -->
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h1 class="text-2xl font-bold text-purple-800 mb-2">📝 {{ topic.title }}</h1>
+    <p class="mb-1"><strong>📁 Category:</strong> {{ topic.category.name }}</p>
+    <p class="mb-1"><strong>👤 Author:</strong> 
+      <a href="{% url 'accounts:user_profile' username=topic.author.username %}" class="text-purple-600 font-semibold hover:underline">
         {{ topic.author.username }}
       </a>
     </p>
-    <p class="text-gray-600 mb-4"><strong>🕒 Created:</strong> {{ topic.date_created|date:"Y-m-d H:i" }}</p>
-    <div class="mb-4 text-gray-800">{{ topic.content }}</div>
+    <p class="text-gray-500 text-sm mb-4"><strong>🕒 Created:</strong> {{ topic.date_created|date:"Y-m-d H:i" }}</p>
+
+    <div class="text-gray-800 mb-4">
+      {{ topic.content }}
+    </div>
 
     {% if topic.tags.exists %}
       <div class="mb-4">
         <strong>🏷️ Tags:</strong>
         {% for tag in topic.tags.all %}
-          <a href="{% url 'topics_by_tag' tag.slug %}" class="px-2 py-1 bg-purple-100 text-purple-700 rounded mr-1 text-sm">
+          <a href="{% url 'topics_by_tag' tag.slug %}" class="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm mr-2 mb-1 hover:bg-purple-200">
             #{{ tag.name }}
           </a>
         {% endfor %}
@@ -25,48 +29,47 @@
     {% endif %}
 
     {% if user.is_authenticated %}
-      <div class="flex items-center gap-2 mb-4">
+      <div class="flex items-center gap-3 mb-4 flex-wrap">
         {% if user == topic.author %}
           <form method="post" action="{% url 'delete_topic' topic.id %}">
             {% csrf_token %}
-            <button class="bg-red-500 text-white px-3 py-1 rounded">🗑️ Delete</button>
+            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">🗑️ Delete</button>
           </form>
         {% endif %}
         <form method="post" action="{% url 'toggle_like' topic.id %}">
           {% csrf_token %}
-          <button class="text-xl focus:outline-none">
+          <button class="text-xl hover:scale-110 transition">
             {% if liked %}💔{% else %}❤️{% endif %}
           </button>
         </form>
-        <span class="font-bold">{{ likes_count }}</span>
-        <button onclick="toggleCommentForm()" class="ml-auto text-lg focus:outline-none">
+        <span class="font-semibold">{{ likes_count }}</span>
+        <button onclick="toggleCommentForm()" class="ml-auto text-lg hover:underline">
           💬 ({{ comments|length }})
         </button>
       </div>
     {% endif %}
   </div>
 
-  <div class="card p-4 mb-4">
-    <h2 class="text-xl text-purple-800 mb-3">💬 Comments</h2>
+  <!-- 💬 Comments Section -->
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold text-purple-800 mb-4">💬 Comments</h2>
     {% for comment in comments %}
-      <div class="mb-4 border-b pb-2">
-        <p class="mb-1">
-          <strong>
-            <a href="{% url 'accounts:user_profile' username=comment.author.username %}" class="text-purple-600">
-              {{ comment.author.username }}
-            </a>
-          </strong>
-          <small class="text-gray-500">— {{ comment.date_created|date:"Y-m-d H:i" }}</small>
+      <div class="mb-4 border-b pb-3">
+        <p class="mb-1 text-sm">
+          <a href="{% url 'accounts:user_profile' username=comment.author.username %}" class="text-purple-600 font-medium hover:underline">
+            {{ comment.author.username }}
+          </a>
+          <span class="text-gray-500">— {{ comment.date_created|date:"Y-m-d H:i" }}</span>
         </p>
         <p class="text-gray-700 mb-2">{{ comment.content }}</p>
         {% if user.is_authenticated %}
           <form method="post" action="{% url 'toggle_comment_like' comment.id %}" class="inline">
             {% csrf_token %}
-            <button class="focus:outline-none">
+            <button class="text-lg hover:scale-110 transition">
               {% if user in comment.likes.all %}💔{% else %}👍{% endif %}
             </button>
           </form>
-          <span class="text-sm">{{ comment.likes.count }}</span>
+          <span class="text-sm text-gray-600">{{ comment.likes.count }}</span>
         {% endif %}
       </div>
     {% empty %}
@@ -74,13 +77,14 @@
     {% endfor %}
   </div>
 
+  <!-- ✍️ Comment Form -->
   {% if user.is_authenticated %}
-    <div id="comment-form" class="card p-4 mb-4 hidden">
-      <h3 class="text-lg text-green-700 mb-2">✍️ Add a Comment</h3>
+    <div id="comment-form" class="bg-white shadow rounded-lg p-6 mb-6 hidden">
+      <h3 class="text-lg font-semibold text-green-700 mb-2">✍️ Add a Comment</h3>
       <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button class="bg-green-600 text-white px-4 py-2 rounded">✅ Submit</button>
+        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">✅ Submit</button>
       </form>
     </div>
     <script>
@@ -90,5 +94,6 @@
       }
     </script>
   {% endif %}
+
 </div>
 {% endblock %}

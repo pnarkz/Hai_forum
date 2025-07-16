@@ -1,132 +1,79 @@
 {% extends 'base.html' %}
-
 {% load form_tags %}
+
 {% block content %}
-<style>
-  .form-input {
-    border: 2px solid #e0e0e0;
-    width: 100%;
-    padding: 12px 15px;
-    font-size: 16px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    margin-top: 5px;
-  }
-  .form-input:focus {
-    outline: none;
-    border-color: #4a90e2;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
-  }
-  .error-message {
-    color: #e74c3c;
-    font-size: 14px;
-    margin-top: 5px;
-  }
-  .error-box {
-    background: #ffebee;
-    border-left: 4px solid #e74c3c;
-    padding: 15px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-  }
-  .btn-register {
-    background: #4CAF50;
-    color: white;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin-top: 10px;
-  }
-  .btn-register:hover {
-    background: #3e8e41;
-    transform: translateY(-2px);
-  }
-  .form-label {
-    font-weight: 600;
-    color: #333;
-    display: block;
-    margin-bottom: 8px;
-  }
-</style>
+<div class="max-w-md mx-auto px-4 py-10">
+  <div class="bg-white shadow-lg rounded-xl p-8">
 
-<div class="container" style="max-width:500px; margin:50px auto;">
-  <div class="card" style="padding:40px; background:#fff; border-radius:16px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
-
-    <h2 style="text-align:center; font-size:32px; margin-bottom:30px; color:#2c3e50;">
+    <h2 class="text-3xl text-center font-bold text-gray-800 mb-6">
       📝 Create Your Account
     </h2>
 
+    {# Non-field errors #}
     {% if form.non_field_errors %}
-      <div class="error-box">
+      <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-4">
         {% for err in form.non_field_errors %}
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:18px;">❗</span>
-            <span>{{ err }}</span>
-          </div>
+          <p class="flex items-center gap-2">❗ {{ err }}</p>
         {% endfor %}
       </div>
     {% endif %}
 
+    {# Field errors summary #}
     {% if form.errors %}
-      <div class="error-box">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <span style="font-size:18px;">❗</span>
-          <strong>{{ form.errors|length }} error{{ form.errors|length|pluralize }} found</strong>
-        </div>
+      <div class="bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded mb-6">
+        <p class="font-semibold mb-1">{{ form.errors|length }} error{{ form.errors|length|pluralize }} found</p>
         <p>Please correct the highlighted fields below.</p>
       </div>
     {% endif %}
 
-    <form method="post" action="{% url 'accounts:signup' %}" style="display:flex; flex-direction:column; gap:20px;">
+    <form method="post" action="{% url 'accounts:signup' %}" class="space-y-5">
       {% csrf_token %}
 
       <div>
         {{ form.username|label_with_icon:"👤"|safe }}
-        {{ form.username|add_class:"form-input"|add_placeholder:"Your username"|add_attr:"required:required,autofocus:autofocus" }}
+        {{ form.username|add_class:"w-full mt-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"|add_placeholder:"Your username"|set_required|set_autofocus|safe }}
         {% if form.username.errors %}
-          <div class="error-message">{{ form.username.errors.0 }}</div>
+          <p class="text-red-600 text-sm mt-1">{{ form.username.errors.0 }}</p>
         {% endif %}
       </div>
 
       <div>
         {{ form.email|label_with_icon:"📧"|safe }}
-        {{ form.email|add_class:"form-input"|add_placeholder:"Your email address"|add_attr:"required:required" }}
+        {{ form.email|add_class:"w-full mt-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"|add_placeholder:"Your email address"|set_required|safe }}
         {% if form.email.errors %}
-          <div class="error-message">{{ form.email.errors.0 }}</div>
+          <p class="text-red-600 text-sm mt-1">{{ form.email.errors.0 }}</p>
         {% endif %}
       </div>
 
       <div>
         {{ form.password1|label_with_icon:"🔑"|safe }}
-        {{ form.password1|add_class:"form-input"|add_placeholder:"Create a password"|add_attr:"required:required" }}
+        {{ form.password1|add_class:"w-full mt-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"|add_placeholder:"Create a password"|set_required|safe }}
         {% if form.password1.errors %}
-          <div class="error-message">{{ form.password1.errors.0 }}</div>
+          <p class="text-red-600 text-sm mt-1">{{ form.password1.errors.0 }}</p>
         {% endif %}
       </div>
 
       <div>
         {{ form.password2|label_with_icon:"🔁"|safe }}
-        {{ form.password2|add_class:"form-input"|add_placeholder:"Repeat the password"|add_attr:"required:required" }}
+        {{ form.password2|add_class:"w-full mt-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"|add_placeholder:"Repeat the password"|set_required|safe }}
         {% if form.password2.errors %}
-          <div class="error-message">{{ form.password2.errors.0 }}</div>
+          <p class="text-red-600 text-sm mt-1">{{ form.password2.errors.0 }}</p>
         {% endif %}
       </div>
 
-      <button type="submit" class="btn-register">
+      <button type="submit"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
         ✅ Register Now
       </button>
     </form>
 
-    <p style="text-align:center; margin-top:25px; color:#555;">
+    <p class="text-center text-sm text-gray-600 mt-6">
       Already have an account?
-      <a href="{% url 'accounts:login' %}" style="color:#3498db; font-weight:600; text-decoration:none;">
+      <a href="{% url 'accounts:login' %}" class="text-blue-600 font-semibold hover:underline">
         🔐 Login here
       </a>
     </p>
+
   </div>
 </div>
 {% endblock %}

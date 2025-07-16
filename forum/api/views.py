@@ -16,28 +16,36 @@ class TopicViewSet(viewsets.ModelViewSet):
     serializer_class = TopicSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    # 🔍 Arama ve sıralama desteği
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'tags__name']  # URL parametreleriyle filtreleme
-    search_fields = ['title', 'content', 'author__username']  # ?search=
-    ordering_fields = ['date_created', 'title']  # ?ordering=...
+    filterset_fields = ['category', 'tags__name']
+    search_fields = ['title', 'content', 'author__username']
+    ordering_fields = ['date_created', 'title']
 
     def perform_create(self, serializer):
-        comment = serializer.save(author=self.request.user.username)
+        topic = serializer.save(author=self.request.user.username)
 
         Notification.objects.create(
-            recipient=self.request.user,  # burayı gerekirse hedef kullanıcıyla değiştir
+            recipient=self.request.user,
             sender=self.request.user,
-            message=f"New comment added.",
-            url=f"/topics/{comment.topic.id}/",
-            type='comment'  # ← EKLENDİ
+            message=f"New topic added.",
+            url=f"/topics/{topic.id}/",
+            type='topic'
         )
-
 
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.deleted_at = timezone.now()
         instance.save()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tag = self.request.query_params.get('tag')
+        category = self.request.query_params.get('category')
+        if tag:
+            queryset = queryset.filter(tags__name__iexact=tag)
+        if category:
+            queryset = queryset.filter(category__id=category)
+        return queryset
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_topics(self, request):
@@ -60,17 +68,35 @@ class TopicViewSet(viewsets.ModelViewSet):
         topic.save()
         return Response({'status': 'restored'})
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        tag = self.request.query_params.get('tag')
-        category = self.request.query_params.get('category')
-        if tag:
-            queryset = queryset.filter(tags__name__iexact=tag)
-        if category:
-            queryset = queryset.filter(category__id=category)
-        return queryset
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def like(self, request, pk=None):
+        topic = self.get_object()
+        topic.likes.add(request.user)
+
+         # Bildirim tetikle
+        if topic.author != user.username:
+            Notification.objects.create(
+                recipient=User.objects.get(username=topic.author),
+                sender=user,
+                message=f"{user.username} liked your topic.",
+                url=f"/topics/{topic.id}/",
+                type='like'
+            )
+
+        return Response({'liked': True, 'likes_count': topic.likes.count()})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def unlike(self, request, pk=None):
+        topic = self.get_object()
+        topic.likes.remove(request.user)
+        return Response({'liked': False, 'likes_count': topic.likes.count()})
 
 
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def liked(self, request):
+        liked_topics = Topic.objects.filter(likes=request.user, is_deleted=False)
+        serializer = self.get_serializer(liked_topics, many=True)
+        return Response(serializer.data)
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.filter(is_deleted=False).order_by('-date_created')
@@ -82,39 +108,27 @@ class CommentViewSet(viewsets.ModelViewSet):
     search_fields = ['content', 'author']
     ordering_fields = ['date_created']
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def like(self, request, pk=None):
-        comment = self.get_object()
-        comment.likes.add(request.user)
-        serializer = self.get_serializer(comment, context={'request': request})
-        return Response({
-            'liked': True,
-            'likes_count': comment.likes.count(),
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def unlike(self, request, pk=None):
-        comment = self.get_object()
-        comment.likes.remove(request.user)
-        serializer = self.get_serializer(comment, context={'request': request})
-        return Response({
-            'liked': False,
-            'likes_count': comment.likes.count(),
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-    
     def perform_create(self, serializer):
         comment = serializer.save(author=self.request.user.username)
+
         Notification.objects.create(
             recipient=self.request.user,
-            message=f"New comment added."
+            sender=self.request.user,
+            message=f"New comment added.",
+            url=f"/topics/{comment.topic.id}/",
+            type='comment'
         )
 
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.deleted_at = timezone.now()
         instance.save()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author != request.user.username and not request.user.is_staff:
+            return Response({"detail": "You are not allowed to edit this comment."}, status=403)
+        return super().update(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
     def deleted(self, request):
@@ -130,13 +144,33 @@ class CommentViewSet(viewsets.ModelViewSet):
         comment.save()
         return Response({'status': 'restored'})
 
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.author != request.user.username and not request.user.is_staff:
-            return Response({"detail": "You are not allowed to edit this comment."}, status=403)
-        return super().update(request, *args, **kwargs)
-    
-   
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def like(self, request, pk=None):
+        comment = self.get_object()
+        comment.likes.add(request.user)
+
+        if comment.author != user.username:
+            Notification.objects.create(
+                recipient=User.objects.get(username=comment.author),
+                sender=user,
+                message=f"{user.username} liked your comment.",
+                url=f"/topics/{comment.topic.id}/",  # Yorumun ait olduğu topic'e yönlendir
+                type='like'
+            )
+        return Response({'liked': True, 'likes_count': comment.likes.count()})
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unlike(self, request, pk=None):
+        comment = self.get_object()
+        comment.likes.remove(request.user)
+        return Response({'liked': False, 'likes_count': comment.likes.count()})
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def liked(self, request):
+        liked_comments = Comment.objects.filter(likes=request.user, is_deleted=False)
+        serializer = self.get_serializer(liked_comments, many=True)
+        return Response(serializer.data)
+
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.annotate(

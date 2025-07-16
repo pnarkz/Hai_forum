@@ -5,10 +5,10 @@
 
   <h1 style="font-size:2rem; margin-bottom:30px; color:#4a148c;">🏠 Forum Home</h1>
 
-  <div style="display:flex; flex-wrap:wrap; gap:30px;">
+  <div style="display:flex; flex-wrap:wrap; gap:30px; justify-content:space-between;">
 
     <!-- 🔥 Latest Topics -->
-    <div class="card" style="flex:1; min-width:280px; padding:20px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+    <div class="card" style="flex:1 1 280px; padding:20px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
       <h2 style="font-size:1.25rem; margin-bottom:15px; color:#7b1fa2;">🧵 Latest Topics</h2>
       {% if latest_topics %}
         <ul style="list-style:none; padding:0; margin:0;">
@@ -35,7 +35,7 @@
     </div>
 
     <!-- 💬 Recent Comments -->
-    <div class="card" style="flex:1; min-width:280px; padding:20px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+    <div class="card" style="flex:1 1 280px; padding:20px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
       <h2 style="font-size:1.25rem; margin-bottom:15px; color:#1b5e20;">💬 Recent Comments</h2>
       {% if latest_comments %}
         <ul style="list-style:none; padding:0; margin:0;">
@@ -65,8 +65,8 @@
 
   </div>
 
-  <!-- Action Buttons -->
-  <div style="margin-top:30px; display:flex; gap:15px; justify-content:center;">
+  <!-- 🚀 Action Buttons -->
+  <div style="margin-top:30px; display:flex; flex-wrap:wrap; gap:15px; justify-content:center;">
     <a href="{% url 'topic_list' %}"
        style="background:#7b1fa2; color:#fff; padding:10px 20px; border:none; border-radius:6px; text-decoration:none;">
       📚 Browse All Topics
