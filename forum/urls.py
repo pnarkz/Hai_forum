@@ -6,9 +6,9 @@ from .views import (
     home_view, topic_list, topics_by_category, create_topic, topic_detail, toggle_like,
     toggle_comment_like, delete_topic, delete_comment, restore_topic, restore_comment,
     edit_topic, edit_comment, reply_comment, trash_bin, admin_trash_bin,
-    category_list, search_topics, topics_by_tag, notifications_view
+    category_list, search_topics, topics_by_tag, notifications_view, mark_all_notifications_read
 )
-
+from forum import views 
 urlpatterns = [
     path('', home_view, name='home'),
     path('logout/', LogoutView.as_view(next_page='accounts:login'), name='logout'),
@@ -35,7 +35,9 @@ urlpatterns = [
     path('categories/', category_list, name='category_list'),
     path('search/', search_topics, name='search_topics'),
     path('tag/<slug:tag_slug>/', topics_by_tag, name='topics_by_tag'),
-    path('notifications/', notifications_view, name='notifications'),
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/mark_all_read/', mark_all_notifications_read, name='mark_all_read'),
+    path('notifications/read/<int:pk>/', views.read_notification, name='read_notification'),
 
     path('api/', include('forum.api.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

@@ -36,12 +36,32 @@
     font-size: 0.85rem;
     color: #888;
   }
+
+  .mark-all-form {
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+
+  .mark-all-btn {
+    background: #4a148c;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  }
 </style>
 
 <div class="container" style="max-width:800px; margin:40px auto;">
-  <h2 style="font-size:1.8rem; color:#4a148c; margin-bottom:25px;">🔔 Your Notifications</h2>
+  <h2 style="font-size:1.8rem; color:#4a148c; margin-bottom:10px;">🔔 Your Notifications</h2>
 
   {% if notifications %}
+    <form method="post" action="/api/notifications/mark_all_read/" class="mark-all-form">
+      {% csrf_token %}
+      <button type="submit" class="mark-all-btn">✅ Mark all as read</button>
+    </form>
+
     {% for n in notifications %}
       <div class="notification-card {% if not n.is_read %}notification-unread{% else %}notification-read{% endif %}">
         <p class="notification-text">
@@ -51,9 +71,30 @@
             </span>
             &mdash;
           {% endif %}
-          <a href="{{ n.url }}">{{ n.message }}</a>
+
+          {% if n.notification_type == 'comment' %}
+            <a href="{% url 'read_notification' pk=n.id %}">
+              📝 commented on your topic 
+              <strong>"{{ n.extra_data.topic_title|default_if_none:'(unknown topic)' }}"</strong>
+              {% if n.extra_data.comment_excerpt %}
+                — &ldquo;{{ n.extra_data.comment_excerpt|truncatechars:80 }}&rdquo;
+              {% endif %}
+            </a>
+          {% elif n.notification_type == 'like' %}
+            <a href="{% url 'read_notification' pk=n.id %}">
+              ❤️ liked your post on 
+              <strong>"{{ n.extra_data.topic_title|default_if_none:'(unknown topic)' }}"</strong>.
+            </a>
+          {% elif n.notification_type == 'reply' %}
+            <a href="{% url 'read_notification' pk=n.id %}">
+              💬 replied to your comment on 
+              <strong>"{{ n.extra_data.topic_title|default_if_none:'(unknown topic)' }}"</strong>.
+            </a>
+          {% else %}
+            <span>You have a new notification.</span>
+          {% endif %}
         </p>
-        <span class="notification-timestamp">{{ n.created_at|date:"Y-m-d H:i" }}</span>
+        <span class="notification-timestamp">{{ n.timestamp|date:"Y-m-d H:i" }}</span>
       </div>
     {% endfor %}
   {% else %}

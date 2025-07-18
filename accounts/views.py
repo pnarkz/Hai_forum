@@ -21,7 +21,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from .forms import SignUpForm
-
+from forum.models import Notification
 
 from django.shortcuts import render
 from django.contrib.sites.shortcuts import get_current_site
@@ -118,7 +118,8 @@ def my_profile_view(request):
 def user_profile_view(request, username):
     user = get_object_or_404(User, username=username)
     profile, _ = UserProfile.objects.get_or_create(user=user)
-
+    unread_count = Notification.objects.filter(recipient=user, is_read=False).count()
+    
     topics = Topic.objects.filter(author=user, is_deleted=False)
     comments = Comment.objects.filter(author=user, is_deleted=False)
     liked_topics = user.liked_topics.filter(is_deleted=False)
@@ -155,6 +156,7 @@ def user_profile_view(request, username):
         'recent_topics': recent_topics,
         'recent_comments': recent_comments,
         'recent_liked_topics': recent_liked_topics,
+        'unread_count': unread_count,
     })
 
 

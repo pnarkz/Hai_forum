@@ -282,5 +282,26 @@ def topics_by_category(request, category_id):
 
 @login_required
 def notifications_view(request):
-    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-timestamp')
     return render(request, 'forum/notifications.html', {'notifications': notifications})
+
+
+@login_required
+def mark_all_notifications_read(request):
+    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return redirect('notifications')
+
+
+
+@login_required
+def read_notification(request, pk):
+    notification = get_object_or_404(Notification, id=pk, recipient=request.user)
+
+    notification.is_read = True
+    notification.save()
+
+    url = None
+    if isinstance(notification.extra_data, dict):
+        url = notification.extra_data.get("url")
+
+    return redirect(url or "topic_list")

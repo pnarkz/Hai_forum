@@ -25,12 +25,15 @@ class TopicViewSet(viewsets.ModelViewSet):
         topic = serializer.save(author=self.request.user.username)
 
         Notification.objects.create(
-            recipient=self.request.user,
+            recipient=self.request.user,  # ya da başka birine yönlendireceksen değiştir
             sender=self.request.user,
-            message=f"New topic added.",
-            url=f"/topics/{topic.id}/",
-            type='topic'
+            topic=topic,
+            notification_type='comment',  # ya da topic tipini eklersen 'topic'
+            extra_data={
+                'topic_title': topic.title,
+            }
         )
+
 
     def perform_destroy(self, instance):
         instance.is_deleted = True
@@ -71,19 +74,23 @@ class TopicViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def like(self, request, pk=None):
         topic = self.get_object()
-        topic.likes.add(request.user)
+        user = request.user
 
-         # Bildirim tetikle
+        topic.likes.add(user)
+
         if topic.author != user.username:
             Notification.objects.create(
                 recipient=User.objects.get(username=topic.author),
                 sender=user,
-                message=f"{user.username} liked your topic.",
-                url=f"/topics/{topic.id}/",
-                type='like'
+                topic=topic,
+                notification_type='like',
+                extra_data={
+                    'topic_title': topic.title
+                }
             )
 
         return Response({'liked': True, 'likes_count': topic.likes.count()})
+
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def unlike(self, request, pk=None):
@@ -110,14 +117,22 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         comment = serializer.save(author=self.request.user.username)
+        topic = comment.topic
 
-        Notification.objects.create(
-            recipient=self.request.user,
-            sender=self.request.user,
-            message=f"New comment added.",
-            url=f"/topics/{comment.topic.id}/",
-            type='comment'
-        )
+        if topic.author != self.request.user.username:
+            Notification.objects.create(
+                recipient=User.objects.get(username=topic.author),
+                sender=self.request.user,
+                topic=topic,
+                comment=comment,
+                notification_type='comment',
+                extra_data={
+                    'topic_title': topic.title,
+                    'comment_excerpt': comment.content[:100]
+                }
+            )
+
+
 
     def perform_destroy(self, instance):
         instance.is_deleted = True
@@ -147,17 +162,24 @@ class CommentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def like(self, request, pk=None):
         comment = self.get_object()
-        comment.likes.add(request.user)
+        user = request.user
+
+        comment.likes.add(user)
 
         if comment.author != user.username:
             Notification.objects.create(
                 recipient=User.objects.get(username=comment.author),
                 sender=user,
-                message=f"{user.username} liked your comment.",
-                url=f"/topics/{comment.topic.id}/",  # Yorumun ait olduğu topic'e yönlendir
-                type='like'
+                topic=comment.topic,
+                comment=comment,
+                notification_type='like',
+                extra_data={
+                    'topic_title': comment.topic.title,
+                    'comment_excerpt': comment.content[:100]
+                }
             )
         return Response({'liked': True, 'likes_count': comment.likes.count()})
+
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def unlike(self, request, pk=None):
@@ -207,15 +229,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
             return Notification.objects.none()
         return Notification.objects.filter(recipient=self.request.user).order_by('-created_at')
 
-@action(detail=False, methods=['post'])
-def mark_all_read(self, request):
-    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
-    return Response({'status': 'all notifications marked as read'})
+    @action(detail=False, methods=['post'])
+    def mark_all_read(self, request):
+        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return Response({'status': 'all marked as read'})
 
-@action(detail=False, methods=['post'])
-def mark_all_read(self, request):
-    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
-    return Response({'status': 'all notifications marked as read'})
 
 class UserProfileView(generics.RetrieveAPIView):
     queryset = User.objects.all()

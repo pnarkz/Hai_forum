@@ -42,7 +42,15 @@
                         </a>
                     </span>
                     <a href="{% url 'accounts:profile_edit' %}" class="hover:text-blue-600">⚙️ Edit Profile</a>
-                    <a href="{% url 'notifications' %}" class="hover:text-blue-600">🔔 Notifications</a>
+                    <a href="{% url 'notifications' %}" class="relative hover:text-blue-600">
+                        🔔 Notifications
+                        {% if unread_count > 0 %}
+                            <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-semibold rounded-full px-2 py-0.5">
+                                {{ unread_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+
                     <a href="{% url 'accounts:logout' %}" class="hover:text-red-600">🚪 Logout</a>
                 {% else %}
                     <a href="{% url 'accounts:login' %}" class="hover:text-blue-600">🔐 Login</a>

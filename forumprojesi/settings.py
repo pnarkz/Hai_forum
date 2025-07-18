@@ -42,7 +42,19 @@ INSTALLED_APPS = [
     'taggit',
     'rest_framework',
     'drf_yasg',
+    'channels',
 ]
+
+# Channels backend olarak Redis kullanacağız
+ASGI_APPLICATION = 'forumprojesi.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 REST_FRAMEWORK = {
     # 🔐 Kimlik Doğrulama

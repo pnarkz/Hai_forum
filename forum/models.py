@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from taggit.managers import TaggableManager
+from django.contrib.postgres.fields import JSONField
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -35,18 +36,22 @@ class Comment(models.Model):
         return f"{self.topic.title} - {self.author.username}"
 
 class Notification(models.Model):
-    NOTIFICATION_TYPES = [
-        ('like', 'Like'),
-        ('comment', 'Comment'),
-        ('reply', 'Reply'),
-        
-    ]
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications', null=True, blank=True)
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_notifications', null=True, blank=True)
-    message = models.CharField(max_length=255)
-    url = models.URLField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    NOTIFICATION_TYPES = (
+        ('comment', 'Yorum'),
+        ('reply', 'Cevap'),
+        ('like', 'Beğeni'),
+    )
+
+    recipient = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, null=True, blank=True, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, null=True, blank=True, on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
     is_read = models.BooleanField(default=False)
-    type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='comment')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    extra_data = models.JSONField(default=dict, blank=True)
+    
     def __str__(self):
-        return f"{self.sender} ➝ {self.recipient} - {self.message[:30]}"
+        return f"{self.sender} → {self.recipient} ({self.notification_type})"
+
+
