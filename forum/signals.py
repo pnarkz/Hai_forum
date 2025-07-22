@@ -3,19 +3,33 @@ from django.dispatch import receiver
 from .models import Comment, Notification
 from django.contrib.auth.models import User
 from accounts.models import UserProfile
+from django.urls import reverse
 
 
 @receiver(post_save, sender=Comment)
 def notify_topic_owner(sender, instance, created, **kwargs):
-    if created:
-        topic = instance.topic
-        if topic.author != instance.author:  # kendi kendine yorum yok
-            Notification.objects.create(
-                recipient=topic.author,
-                sender=User.objects.get(username=instance.author),
-                message=f"{instance.author} commented on your topic: {topic.title}",
-                url=f"/topic/{topic.id}/"
-)
+    if not created:
+        return
+
+    topic     = instance.topic
+    commenter = instance.author    # veya Comment modelinizdeki user alanı hangisiyse
+
+    # Kendi kendine yorum yapmıyorsa devam et
+    if topic.author == commenter:
+        return
+
+    Notification.objects.create(
+        recipient         = topic.author,        # kim bildirim alacak
+        sender            = commenter,           # kim gönderiyor
+        topic             = topic,               # hangi konu
+        comment           = instance,            # hangi yorum
+        notification_type = 'comment',           # choices içinde 'comment'
+        extra_data        = {
+            'message': f"{commenter.username} konunuza yorum yaptı: “{topic.title}”",
+            'url':     reverse('topic_detail', args=[topic.id])
+        }
+    )
+
 
 @receiver(post_save, sender=Comment)
 def create_comment_notification(sender, instance, created, **kwargs):

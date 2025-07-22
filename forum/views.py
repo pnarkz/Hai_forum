@@ -8,7 +8,7 @@ from django.db.models import Count, Q
 from datetime import timedelta
 from collections import Counter
 from django.contrib.auth.models import User
-
+from django.urls import reverse
 from .models import Topic, Comment, Category, Notification
 from .forms import TopicForm, CommentForm
 
@@ -59,69 +59,113 @@ def create_topic(request):
         form = TopicForm()
     return render(request, 'forum/create_topic.html', {'form': form})
 
+@login_required
 def topic_detail(request, topic_id):
-    topic = get_object_or_404(Topic, pk=topic_id)
+    topic    = get_object_or_404(Topic, pk=topic_id)
     comments = topic.comments.filter(is_deleted=False)
+
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
-            comment.topic = topic
+            comment.topic  = topic
             comment.author = request.user
             comment.save()
+
             if request.user != topic.author:
                 Notification.objects.create(
-                    recipient=topic.author,
-                    sender=request.user,
-                    message=f"{request.user.username} commented on your topic '{topic.title}'",
-                    url=f"/topics/{topic.id}/",
-                    type='comment'
+                    recipient         = topic.author,
+                    sender            = request.user,
+                    topic             = topic,
+                    comment           = comment,
+                    notification_type = 'comment',
+                    extra_data        = {
+                        'message': f"{request.user.username} konunuza yorum yaptı: “{topic.title}”",
+                        'url':     reverse('topic_detail', args=[topic.id])
+                    }
                 )
             return redirect('topic_detail', topic_id=topic.id)
     else:
         form = CommentForm()
+
     return render(request, 'forum/topic_detail.html', {
-        'topic': topic,
-        'comments': comments,
-        'form': form,
-        'liked': request.user in topic.likes.all() if request.user.is_authenticated else False,
-        'likes_count': topic.likes.count(),
+        'topic':        topic,
+        'comments':     comments,
+        'form':         form,
+        'liked':        request.user in topic.likes.all() if request.user.is_authenticated else False,
+        'likes_count':  topic.likes.count(),
     })
+
 
 @login_required
 def toggle_like(request, topic_id):
     topic = get_object_or_404(Topic, id=topic_id)
-    user = request.user
+    user  = request.user
+
     if user in topic.likes.all():
         topic.likes.remove(user)
     else:
         topic.likes.add(user)
         if topic.author != user:
             Notification.objects.create(
-                recipient=topic.author,
-                sender=user,
-                message=f"{user.username} liked your topic '{topic.title}'",
-                url=f"/topics/{topic.id}/",
-                type='like'
+                recipient         = topic.author,
+                sender            = user,
+                topic             = topic,
+                notification_type = 'like',
+                extra_data        = {
+                    'message': f"{user.username} konunuzu beğendi: “{topic.title}”",
+                    'url':     reverse('topic_detail', args=[topic.id])
+                }
             )
+
     return redirect('topic_detail', topic_id=topic.id)
+
 
 @login_required
 def toggle_comment_like(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
-    user = request.user
+    user    = request.user
+
     if user in comment.likes.all():
         comment.likes.remove(user)
     else:
         comment.likes.add(user)
         if comment.author != user:
             Notification.objects.create(
-                recipient=comment.author,
-                sender=user,
-                message=f"{user.username} liked your comment.",
-                url=f"/topics/{comment.topic.id}/",
-                type='like'
+                recipient         = comment.author,
+                sender            = user,
+                topic             = comment.topic,
+                comment           = comment,
+                notification_type = 'like',
+                extra_data        = {
+                    'message': f"{user.username} yorumunuzu beğendi.",
+                    'url':     reverse('topic_detail', args=[comment.topic.id])
+                }
             )
+
+    return redirect('topic_detail', topic_id=comment.topic.id)
+@login_required
+def toggle_comment_like(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    user    = request.user
+
+    if user in comment.likes.all():
+        comment.likes.remove(user)
+    else:
+        comment.likes.add(user)
+        if comment.author != user:
+            Notification.objects.create(
+                recipient         = comment.author,
+                sender            = user,
+                topic             = comment.topic,
+                comment           = comment,
+                notification_type = 'like',
+                extra_data        = {
+                    'message': f"{user.username} yorumunuzu beğendi.",
+                    'url':     reverse('topic_detail', args=[comment.topic.id])
+                }
+            )
+
     return redirect('topic_detail', topic_id=comment.topic.id)
 
 @login_required
@@ -220,30 +264,40 @@ def restore_comment(request, comment_id):
 @login_required
 def reply_comment(request, comment_id):
     parent = get_object_or_404(Comment, id=comment_id)
-    topic = parent.topic
+    topic  = parent.topic
+
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
             reply = form.save(commit=False)
-            reply.topic = topic
+            reply.topic  = topic
             reply.author = request.user
             reply.parent = parent
             reply.save()
-            Notification.objects.create(
-                recipient=parent.author,
-                sender=request.user,
-                message=f"{request.user.username} replied to your comment.",
-                url=f"/topics/{topic.id}/",
-                type='reply'
-            )
+
+            # Ana yorumu yapan kişiye bildirim
+            if parent.author != request.user:
+                Notification.objects.create(
+                    recipient         = parent.author,
+                    sender            = request.user,
+                    topic             = topic,
+                    comment           = reply,
+                    notification_type = 'reply',
+                    extra_data        = {
+                        'message': f"{request.user.username} yorumunuza cevap verdi.",
+                        'url':     reverse('topic_detail', args=[topic.id])
+                    }
+                )
+
             messages.success(request, "Reply posted.")
             return redirect('topic_detail', topic_id=topic.id)
     else:
         form = CommentForm()
+
     return render(request, 'forum/reply_comment.html', {
-        'form': form,
+        'form':   form,
         'parent': parent,
-        'topic': topic
+        'topic':  topic
     })
 
 def category_list(request):

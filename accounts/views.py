@@ -118,7 +118,8 @@ def my_profile_view(request):
 def user_profile_view(request, username):
     user = get_object_or_404(User, username=username)
     profile, _ = UserProfile.objects.get_or_create(user=user)
-    unread_count = Notification.objects.filter(recipient=user, is_read=False).count()
+    #unread_count = Notification.objects.filter(recipient=user, is_read=False).count()
+    profile_owner_unread_count = Notification.objects.filter(recipient=user, is_read=False).count()
     
     topics = Topic.objects.filter(author=user, is_deleted=False)
     comments = Comment.objects.filter(author=user, is_deleted=False)
@@ -156,7 +157,8 @@ def user_profile_view(request, username):
         'recent_topics': recent_topics,
         'recent_comments': recent_comments,
         'recent_liked_topics': recent_liked_topics,
-        'unread_count': unread_count,
+        #'unread_count': unread_count,
+        'profile_owner_unread_count': profile_owner_unread_count,
     })
 
 
