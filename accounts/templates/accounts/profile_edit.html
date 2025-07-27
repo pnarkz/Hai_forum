@@ -1,101 +1,108 @@
+{# forum/templates/accounts/profile_edit.html #}
 {% extends 'base.html' %}
-{% load static form_tags %}
+{% load forum_tags static %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 py-10">
-  <div class="bg-white shadow-md rounded-xl p-8">
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-8 space-y-8">
 
-    <h2 class="text-3xl text-center font-bold text-purple-800 mb-8">
+    <h2 class="text-3xl font-bold text-center text-purple-800">
       🎨 Customize Your <span class="text-purple-600">Profile</span>
     </h2>
 
     {# Genel form hataları #}
     {% if u_form.non_field_errors or p_form.non_field_errors %}
-      <ul class="mb-4 space-y-2">
-        {% for err in u_form.non_field_errors %}<li class="bg-red-100 text-red-700 p-3 rounded">{{ err }}</li>{% endfor %}
-        {% for err in p_form.non_field_errors %}<li class="bg-red-100 text-red-700 p-3 rounded">{{ err }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-
-    {# Alan bazlı hatalar #}
-    {% if u_form.errors or p_form.errors %}
-      <ul class="mb-4 space-y-2">
-        {% for field in u_form %}
-          {% for err in field.errors %}
-            <li class="bg-red-50 border-l-4 border-red-400 text-red-800 p-2 rounded">{{ err }}</li>
-          {% endfor %}
+      <ul class="space-y-2">
+        {% for err in u_form.non_field_errors %}
+          <li class="bg-red-100 text-red-700 p-3 rounded">{{ err }}</li>
         {% endfor %}
-        {% for field in p_form %}
-          {% for err in field.errors %}
-            <li class="bg-red-50 border-l-4 border-red-400 text-red-800 p-2 rounded">{{ err }}</li>
-          {% endfor %}
+        {% for err in p_form.non_field_errors %}
+          <li class="bg-red-100 text-red-700 p-3 rounded">{{ err }}</li>
         {% endfor %}
       </ul>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data" action="{% url 'accounts:profile_edit' %}" class="space-y-8">
+    <form method="post" enctype="multipart/form-data" action="{% url 'accounts:profile_edit' %}" class="space-y-6">
       {% csrf_token %}
 
       <!-- 🔐 Account Info -->
-      <section>
-        <h3 class="text-xl font-semibold mb-4 text-blue-700">🔐 Account Info</h3>
+      <div class="space-y-4">
+        <h3 class="text-xl font-semibold text-blue-700">🔐 Account Info</h3>
 
-        {{ u_form.username|label_with_icon:"👤"|safe }}
-        {{ u_form.username|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Enter your username"|set_autofocus|set_required|safe }}
+        <div class="space-y-1">
+          {{ u_form.username|label_with_icon:"👤" }}
+          {{ u_form.username|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Enter your username" |set_autofocus |set_required }}
+        </div>
 
-        {{ u_form.email|label_with_icon:"📧"|safe }}
-        {{ u_form.email|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Your email"|set_required|safe }}
+        <div class="space-y-1">
+          {{ u_form.email|label_with_icon:"📧" }}
+          {{ u_form.email|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Your email" |set_required }}
+        </div>
 
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="w-full">
-            {{ u_form.first_name|label_with_icon:"🪪"|safe }}
-            {{ u_form.first_name|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"First name"|safe }}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1">
+            {{ u_form.first_name|label_with_icon:"🪪" }}
+            {{ u_form.first_name|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"First name" }}
           </div>
-          <div class="w-full">
-            {{ u_form.last_name|label_with_icon:"🧾"|safe }}
-            {{ u_form.last_name|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Last name"|safe }}
+          <div class="space-y-1">
+            {{ u_form.last_name|label_with_icon:"🧾" }}
+            {{ u_form.last_name|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Last name" }}
           </div>
         </div>
-      </section>
+      </div>
 
       <!-- 🖼️ Profile Details -->
-      <section>
-        <h3 class="text-xl font-semibold mb-4 text-purple-700">🖼️ Profile Details</h3>
+      <div class="space-y-4">
+        <h3 class="text-xl font-semibold text-purple-700">🖼️ Profile Details</h3>
 
-        <div class="flex items-center gap-5 mb-4">
-          <img id="avatarPreview"
-               src="{% if profile_picture_url %}{{ profile_picture_url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
-               alt="Avatar Preview"
-               class="w-24 h-24 rounded-full object-cover border border-gray-300">
-          <div class="flex-1">
-            {{ p_form.profile_picture|label_with_icon:"📷 Profile Picture"|safe }}
-            {{ p_form.profile_picture }}
+        <div class="flex items-center gap-6">
+          <div class="relative">
+            <img id="avatarPreview"
+                 src="{% if profile_picture_url %}{{ profile_picture_url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
+                 alt="Avatar Preview"
+                 class="w-24 h-24 rounded-full object-cover border border-gray-300 shadow-sm">
+          </div>
+          <div class="flex-1 space-y-1">
+            {{ p_form.profile_picture|label_with_icon:"📷 Profile Picture" }}
+            {{ p_form.profile_picture|add_class:"w-full" }}
           </div>
         </div>
 
-        {{ p_form.bio|label_with_icon:"📝"|safe }}
-        {{ p_form.bio|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Tell us a bit about yourself..."|safe }}
+        <div class="space-y-1">
+          {{ p_form.bio|label_with_icon:"📝" }}
+          {{ p_form.bio|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Tell us a bit about yourself..." }}
+        </div>
 
-        {{ p_form.location|label_with_icon:"📍"|safe }}
-        {{ p_form.location|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Your location"|safe }}
+        <div class="space-y-1">
+          {{ p_form.location|label_with_icon:"📍" }}
+          {{ p_form.location|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Your location" }}
+        </div>
 
-        {{ p_form.website|label_with_icon:"🌐"|safe }}
-        {{ p_form.website|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Website URL"|safe }}
+        <div class="space-y-1">
+          {{ p_form.website|label_with_icon:"🌐" }}
+          {{ p_form.website|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Website URL" }}
+        </div>
 
-        {{ p_form.twitter|label_with_icon:"🐦"|safe }}
-        {{ p_form.twitter|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"Twitter URL"|safe }}
+        <div class="space-y-1">
+          {{ p_form.twitter|label_with_icon:"🐦" }}
+          {{ p_form.twitter|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Twitter URL" }}
+        </div>
 
-        {{ p_form.linkedin|label_with_icon:"🔗"|safe }}
-        {{ p_form.linkedin|add_class:"w-full px-4 py-2 mt-1 border-b-2 border-gray-300 focus:outline-none focus:border-purple-500"|add_placeholder:"LinkedIn URL"|safe }}
-      </section>
+        <div class="space-y-1">
+          {{ p_form.linkedin|label_with_icon:"🔗" }}
+          {{ p_form.linkedin|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"LinkedIn URL" }}
+        </div>
+      </div>
 
       <!-- 💾 Submit -->
       <div class="text-center">
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+        <button type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition">
           💾 Save Changes
         </button>
         <p class="mt-4 text-sm">
-          <a href="{% url 'accounts:user_profile' username=request.user.username %}" class="text-blue-600 hover:underline">
+          <a href="{% url 'accounts:user_profile' username=request.user.username %}"
+             class="text-blue-600 hover:underline">
             ← Back to Profile
           </a>
         </p>

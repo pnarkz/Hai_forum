@@ -4,52 +4,76 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q,F, IntegerField, Value
 from datetime import timedelta
 from collections import Counter
 from django.contrib.auth.models import User
 from django.urls import reverse
 from .models import Topic, Comment, Category, Notification
 from .forms import TopicForm, CommentForm
+from django.db.models.functions import Coalesce
+from taggit.models import Tag
 
-def home_view(request):
-    latest_topics = Topic.objects.filter(is_deleted=False).order_by('-date_created')[:5]
-    latest_comments = Comment.objects.select_related('topic').order_by('-date_created')[:5]
-    return render(request, 'forum/home.html', {
-        'latest_topics': latest_topics,
-        'latest_comments': latest_comments
-    })
+def home(request):
+    # Genel ana sayfa: en çok yorum alan, en çok tartışılan, son yorumlar, popüler etiketler ve sayılar
+    top_topics = Topic.objects.annotate(
+        comment_count=Count('comments', filter=Q(comments__is_deleted=False)),
+        like_count=Count('likes', distinct=True)
+    ).order_by('-comment_count', '-like_count')[:5]
 
-def topic_list(request, category_id=None):
-    categories = Category.objects.all()
-    if category_id:
-        selected = get_object_or_404(Category, id=category_id)
-        topics = Topic.objects.filter(category=selected, is_deleted=False).order_by('-date_created')
-    else:
-        selected = None
-        topics = Topic.objects.filter(is_deleted=False).order_by('-date_created')
+    most_discussed_topics = Topic.objects.annotate(
+        comment_count=Count('comments', filter=Q(comments__is_deleted=False))
+    ).order_by('-comment_count')[:5]
 
-    popular_by_likes = (
-        Topic.objects.filter(is_deleted=False)
-             .annotate(like_count=Count('likes'))
-             .order_by('-like_count', '-date_created')[:5]
-    )
-    popular_by_comments = (
-        Topic.objects.filter(is_deleted=False)
-             .annotate(comment_count=Count('comments', filter=Q(comments__is_deleted=False)))
-             .order_by('-comment_count', '-date_created')[:5]
-    )
+    recent_comments = Comment.objects.filter(is_deleted=False).order_by('-date_created')[:5]
+
+    popular_tags = Tag.objects.all()[:6]
+
+    context = {
+        'top_topics': top_topics,
+        'most_discussed_topics': most_discussed_topics,
+        'recent_comments': recent_comments,
+        'popular_tags': popular_tags,
+        'total_topics': Topic.objects.filter(is_deleted=False).count(),
+        'total_users': User.objects.count(),
+        'total_comments': Comment.objects.filter(is_deleted=False).count(),
+        # 'online_users': ...   # isterseniz kendi online user takibinizi ekleyin
+    }
+    return render(request, 'forum/home.html', context)
+
+
+def topic_list(request, category_slug=None):
+    # Temel filtre ve annotate
+    topics = Topic.objects.filter(is_deleted=False) \
+        .select_related('author','category') \
+        .annotate(
+            comment_count=Count('comments', filter=Q(comments__is_deleted=False)),
+            like_count=Count('likes', distinct=True)
+        ).order_by('-date_created')
+
+    current_category = None
+    if category_slug:
+        current_category = get_object_or_404(Category, slug=category_slug)
+        topics = topics.filter(category=current_category)
+
+    hot_topics     = topics.order_by('-like_count','-date_created')[:5]
+    most_discussed = topics.order_by('-comment_count','-date_created')[:5]
+    recent_topics  = topics.order_by('-date_created')[:5]      # ← En son oluşturulan konular
+    popular_tags   = Tag.objects.all()[:6]
+
     return render(request, 'forum/topic_list.html', {
-        'topics': topics,
-        'categories': categories,
-        'selected_category': selected,
-        'popular_by_likes': popular_by_likes,
-        'popular_by_comments': popular_by_comments,
+        'topics':            topics,
+        'selected_category': current_category,
+        'categories':        Category.objects.all(),
+        'hot_topics':        hot_topics,
+        'most_discussed':    most_discussed,
+        'recent_topics':     recent_topics,    # ← Template’te bunu kullanacağız
+        'popular_tags':      popular_tags,
     })
 
 def create_topic(request):
     if request.method == 'POST':
-        form = TopicForm(request.POST)
+        form = TopicForm(request.POST, request.FILES)
         if form.is_valid():
             topic = form.save(commit=False)
             topic.author = request.user
@@ -59,19 +83,42 @@ def create_topic(request):
         form = TopicForm()
     return render(request, 'forum/create_topic.html', {'form': form})
 
+
 @login_required
 def topic_detail(request, topic_id):
-    topic    = get_object_or_404(Topic, pk=topic_id)
-    comments = topic.comments.filter(is_deleted=False)
+    topic = get_object_or_404(Topic, id=topic_id, is_deleted=False)
+
+    # Görüntülenme sayısını artır
+    topic.views = F('views') + 1
+    topic.save(update_fields=['views'])
+    topic.refresh_from_db()
+
+    comments = topic.comments.filter(is_deleted=False).order_by('date_created')
+    form = CommentForm()
+
+    context = {
+        'topic':        topic,
+        'comments':     comments,
+        'form':         form,
+        'liked':        topic.likes.filter(id=request.user.id).exists() if request.user.is_authenticated else False,
+        'likes_count':  topic.likes.count(),
+    }
+    return render(request, 'forum/topic_detail.html', context)
+
+
+@login_required
+def create_comment(request, topic_id):
+    topic = get_object_or_404(Topic, pk=topic_id, is_deleted=False)
 
     if request.method == 'POST':
-        form = CommentForm(request.POST)
+        form = CommentForm(request.POST, request.FILES)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.topic  = topic
             comment.author = request.user
             comment.save()
 
+            # Bildirim
             if request.user != topic.author:
                 Notification.objects.create(
                     recipient         = topic.author,
@@ -88,14 +135,16 @@ def topic_detail(request, topic_id):
     else:
         form = CommentForm()
 
-    return render(request, 'forum/topic_detail.html', {
-        'topic':        topic,
-        'comments':     comments,
-        'form':         form,
-        'liked':        request.user in topic.likes.all() if request.user.is_authenticated else False,
-        'likes_count':  topic.likes.count(),
+        form.fields['content'].widget.attrs.update({
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none',
+            'rows': '6',
+            'placeholder': 'Yorumunuzu yazın...',
+            'required': 'required'
+        })
+    return render(request, 'forum/create_comment.html', {
+        'form':  form,
+        'topic': topic,
     })
-
 
 @login_required
 def toggle_like(request, topic_id):
@@ -321,18 +370,35 @@ def topics_by_tag(request, tag_slug):
     topics = Topic.objects.filter(tags__slug=tag_slug, is_deleted=False).order_by('-date_created')
     return render(request, 'forum/topics_by_tag.html', {'tag': tag, 'topics': topics})
 
+from django.db.models import Count, Q, F
+from taggit.models import Tag
+
 def topics_by_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-    topics = Topic.objects.filter(category=category, is_deleted=False)
-    most_liked_topics = topics.annotate(num_likes=Count('likes')).order_by('-num_likes')[:5]
-    most_commented_topics = topics.annotate(num_comments=Count('comments')).order_by('-num_comments')[:5]
+    topics = Topic.objects.filter(category=category, is_deleted=False) \
+        .select_related('author','category') \
+        .annotate(
+            comment_count=Count('comments', filter=Q(comments__is_deleted=False)),
+            like_count=Count('likes', distinct=True)
+        ).order_by('-date_created')
+
+    hot_topics     = topics.order_by('-like_count','-date_created')[:5]
+    most_discussed = topics.order_by('-comment_count','-date_created')[:5]
+    recent_topics  = topics.order_by('-date_created')[:5]      # ← Aynı burada da
+    popular_tags   = Tag.objects.all()[:6]
+
     return render(request, 'forum/topic_list.html', {
-        'topics': topics,
-        'most_liked_topics': most_liked_topics,
-        'most_commented_topics': most_commented_topics,
+        'topics':            topics,
         'selected_category': category,
-        'categories': Category.objects.all()
+        'categories':        Category.objects.all(),
+        'hot_topics':        hot_topics,
+        'most_discussed':    most_discussed,
+        'recent_topics':     recent_topics,    # ← Ve burada
+        'popular_tags':      popular_tags,
     })
+
+
+
 
 @login_required
 def notifications_view(request):

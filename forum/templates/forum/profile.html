@@ -1,63 +1,83 @@
+{# forum/templates/forum/profile.html #}
 {% extends 'base.html' %}
+{% load forum_tags %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
 
   <!-- 👤 Profile Header -->
-  <div class="bg-white shadow rounded-lg p-5 flex items-center gap-5">
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6 flex items-center gap-6">
     {% if image_url %}
       <img src="{{ image_url }}" alt="Profile picture"
-           class="w-24 h-24 rounded-full object-cover">
+           class="w-24 h-24 rounded-full object-cover shadow-sm">
     {% else %}
-      <img src="https://ui-avatars.com/api/?name={{ profile_user.username }}"
-           alt="Avatar" class="w-24 h-24 rounded-full object-cover">
+      <div class="w-24 h-24 rounded-full bg-gradient-to-br from-primary-200 to-primary-400 flex items-center justify-center text-white text-2xl font-bold">
+        {{ profile_user.username|first|upper }}
+      </div>
     {% endif %}
-    <h2 class="text-xl font-bold text-gray-800">👤 {{ profile_user.username }}</h2>
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">👤 {{ profile_user.username }}</h2>
+      <p class="text-sm text-gray-500">Member since {{ profile_user.date_joined|date:"M d, Y" }}</p>
+    </div>
   </div>
 
   <!-- 📊 Stats -->
-  <div class="bg-white shadow rounded-lg p-5">
-    <p><strong>🔥 Karma Score:</strong> {{ karma }}</p>
-    <p>🕒 Last Login: {{ last_login|date:"d M Y H:i" }}</p>
-    <ul class="flex flex-wrap gap-4 mt-3 text-gray-700 text-sm">
-      <li>📌 Topics: {{ topic_count }}</li>
-      <li>💬 Comments: {{ comment_count }}</li>
-      <li>❤️ Likes: {{ like_count }}</li>
-    </ul>
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6 grid grid-cols-2 gap-6">
+    <div>
+      <h3 class="text-lg font-semibold text-primary-600 mb-2">🔥 Karma Score</h3>
+      <p class="text-2xl font-bold text-gray-800">{{ karma }}</p>
+    </div>
+    <div>
+      <h3 class="text-lg font-semibold text-secondary-600 mb-2">🕒 Last Login</h3>
+      <p class="text-gray-800">{{ last_login|date:"d M Y, H:i" }}</p>
+    </div>
+    <div class="col-span-2">
+      <ul class="flex flex-wrap gap-4 text-gray-700 text-sm">
+        <li>📌 Topics: <strong>{{ topic_count }}</strong></li>
+        <li>💬 Comments: <strong>{{ comment_count }}</strong></li>
+        <li>❤️ Likes: <strong>{{ like_count }}</strong></li>
+      </ul>
+    </div>
   </div>
 
-  <!-- 🏷️ Tags -->
-  <div class="bg-white shadow rounded-lg p-5">
-    <h4 class="font-semibold mb-2">🏷️ Top Tags</h4>
+  <!-- 🏷️ Top Tags -->
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6">
+    <h3 class="text-lg font-semibold text-accent-600 mb-4">🏷️ Top Tags</h3>
     {% if most_common_tags %}
       <div class="flex flex-wrap gap-2">
         {% for tag, count in most_common_tags %}
-          <span class="bg-gray-200 px-3 py-1 rounded-full text-sm">{{ tag }} ({{ count }})</span>
+          <span class="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-medium">
+            {{ tag }} ({{ count }})
+          </span>
         {% endfor %}
       </div>
     {% else %}
-      <p class="text-gray-500 italic">No tags used yet.</p>
+      <p class="italic text-gray-500">No tags used yet.</p>
     {% endif %}
   </div>
 
-  <!-- 📝 Bio -->
-  <div class="bg-white shadow rounded-lg p-5">
-    <h3 class="font-semibold mb-2">📝 About Me</h3>
+  <!-- 📝 About Me -->
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6">
+    <h3 class="text-lg font-semibold text-primary-600 mb-4">📝 About Me</h3>
     {% if bio %}
-      <p>{{ bio }}</p>
+      <p class="text-gray-800 leading-relaxed">{{ bio }}</p>
     {% else %}
       <p class="italic text-gray-500">No bio written yet.</p>
     {% endif %}
   </div>
 
-  <!-- 📌 Topics -->
-  <div class="bg-white shadow rounded-lg p-5">
-    <h3 class="font-semibold mb-2">📌 Topics Created</h3>
+  <!-- 📌 Topics Created -->
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6">
+    <h3 class="text-lg font-semibold text-primary-600 mb-4">📌 Topics Created</h3>
     {% if topics %}
-      <ul class="space-y-1">
+      <ul class="space-y-2">
         {% for topic in topics %}
-          <li>
-            <a href="{% url 'topic_detail' topic.id %}" class="text-blue-600 hover:underline">{{ topic.title }}</a>
-            <small class="text-gray-500">({{ topic.date_created|date:"Y-m-d" }})</small>
+          <li class="flex justify-between items-center">
+            <a href="{% url 'topic_detail' topic.id %}"
+               class="text-primary-600 hover:underline font-medium">
+              {{ topic.title|truncatechars:50 }}
+            </a>
+            <span class="text-gray-500 text-xs">{{ topic.date_created|date:"Y-m-d" }}</span>
           </li>
         {% endfor %}
       </ul>
@@ -67,14 +87,17 @@
   </div>
 
   <!-- 💬 Comments -->
-  <div class="bg-white shadow rounded-lg p-5">
-    <h3 class="font-semibold mb-2">💬 Comments</h3>
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6">
+    <h3 class="text-lg font-semibold text-secondary-600 mb-4">💬 Comments</h3>
     {% if comments %}
-      <ul class="space-y-1">
+      <ul class="space-y-2">
         {% for comment in comments %}
-          <li>
-            “{{ comment.content|truncatechars:60 }}” —
-            <a href="{% url 'topic_detail' comment.topic.id %}" class="text-blue-600 hover:underline">{{ comment.topic.title }}</a>
+          <li class="flex justify-between items-start">
+            <span class="text-gray-800">“{{ comment.content|truncatechars:60 }}”</span>
+            <a href="{% url 'topic_detail' comment.topic.id %}#comment-{{ comment.id }}"
+               class="text-primary-600 hover:underline ml-4 text-sm">
+              {{ comment.topic.title|truncatechars:30 }}
+            </a>
           </li>
         {% endfor %}
       </ul>
@@ -84,13 +107,16 @@
   </div>
 
   <!-- ❤️ Liked Topics -->
-  <div class="bg-white shadow rounded-lg p-5">
-    <h3 class="font-semibold mb-2">❤️ Liked Topics</h3>
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6">
+    <h3 class="text-lg font-semibold text-red-600 mb-4">❤️ Liked Topics</h3>
     {% if liked_topics %}
-      <ul class="space-y-1">
+      <ul class="space-y-2">
         {% for topic in liked_topics %}
           <li>
-            <a href="{% url 'topic_detail' topic.id %}" class="text-blue-600 hover:underline">{{ topic.title }}</a>
+            <a href="{% url 'topic_detail' topic.id %}"
+               class="text-primary-600 hover:underline">
+              {{ topic.title|truncatechars:50 }}
+            </a>
           </li>
         {% endfor %}
       </ul>
@@ -100,15 +126,18 @@
   </div>
 
   <!-- 🔄 Recent Activity -->
-  <div class="bg-white shadow rounded-lg p-5 space-y-6">
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow p-6 space-y-6">
     <div>
-      <h4 class="text-purple-800 font-semibold mb-2">🆕 Latest Topics</h4>
+      <h4 class="text-lg font-semibold text-blue-600 mb-3">🆕 Latest Topics</h4>
       {% if recent_topics %}
-        <ul class="space-y-1">
+        <ul class="space-y-2">
           {% for topic in recent_topics %}
-            <li>
-              <a href="{% url 'topic_detail' topic.id %}" class="text-blue-600 hover:underline">{{ topic.title }}</a>
-              <small class="text-gray-500">({{ topic.date_created|date:"M d, H:i" }})</small>
+            <li class="flex justify-between items-center">
+              <a href="{% url 'topic_detail' topic.id %}"
+                 class="text-primary-600 hover:underline">
+                {{ topic.title|truncatechars:50 }}
+              </a>
+              <span class="text-gray-500 text-xs">{{ topic.date_created|date:"M d, H:i" }}</span>
             </li>
           {% endfor %}
         </ul>
@@ -118,14 +147,16 @@
     </div>
 
     <div>
-      <h4 class="text-green-800 font-semibold mb-2">💬 Latest Comments</h4>
+      <h4 class="text-lg font-semibold text-green-600 mb-3">💬 Latest Comments</h4>
       {% if recent_comments %}
-        <ul class="space-y-1">
+        <ul class="space-y-2">
           {% for comment in recent_comments %}
-            <li>
-              “{{ comment.content|truncatechars:60 }}” <small>on</small>
-              <a href="{% url 'topic_detail' comment.topic.id %}" class="text-blue-600 hover:underline">{{ comment.topic.title }}</a>
-              <small class="text-gray-500">({{ comment.date_created|date:"M d, H:i" }})</small>
+            <li class="flex justify-between items-start">
+              <span class="text-gray-800">“{{ comment.content|truncatechars:60 }}”</span>
+              <a href="{% url 'topic_detail' comment.topic.id %}#comment-{{ comment.id }}"
+                 class="text-primary-600 hover:underline ml-4 text-sm">
+                {{ comment.topic.title|truncatechars:30 }}
+              </a>
             </li>
           {% endfor %}
         </ul>
@@ -135,13 +166,16 @@
     </div>
 
     <div>
-      <h4 class="text-red-700 font-semibold mb-2">❤️ Recently Liked Topics</h4>
+      <h4 class="text-lg font-semibold text-red-600 mb-3">❤️ Recently Liked Topics</h4>
       {% if recent_liked_topics %}
-        <ul class="space-y-1">
+        <ul class="space-y-2">
           {% for topic in recent_liked_topics %}
-            <li>
-              <a href="{% url 'topic_detail' topic.id %}" class="text-blue-600 hover:underline">{{ topic.title }}</a>
-              <small class="text-gray-500">({{ topic.date_created|date:"M d" }})</small>
+            <li class="flex justify-between items-center">
+              <a href="{% url 'topic_detail' topic.id %}"
+                 class="text-primary-600 hover:underline">
+                {{ topic.title|truncatechars:50 }}
+              </a>
+              <span class="text-gray-500 text-xs">{{ topic.date_created|date:"M d" }}</span>
             </li>
           {% endfor %}
         </ul>
@@ -154,10 +188,12 @@
   <!-- ⚙️ Edit Buttons -->
   {% if user == profile_user %}
     <div class="text-center space-x-4">
-      <a href="{% url 'accounts:profile_edit' %}" class="inline-block bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md">
+      <a href="{% url 'accounts:profile_edit' %}"
+         class="inline-block bg-gray-200 hover:bg-gray-300 px-5 py-2 rounded-lg font-medium transition">
         ✏️ Edit Profile
       </a>
-      <a href="{% url 'accounts:password_change' %}" class="inline-block bg-red-100 hover:bg-red-200 px-4 py-2 rounded-md">
+      <a href="{% url 'accounts:password_change' %}"
+         class="inline-block bg-red-100 hover:bg-red-200 px-5 py-2 rounded-lg font-medium transition">
         🔒 Change Password
       </a>
     </div>

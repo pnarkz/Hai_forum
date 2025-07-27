@@ -20,6 +20,10 @@ class Topic(models.Model):
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     tags = TaggableManager(blank=True)
+    image = models.ImageField(upload_to='topic_images/', null=True, blank=True)
+    video = models.FileField(upload_to='topic_videos/', null=True, blank=True)
+    views = models.PositiveIntegerField(default=0)
+    
     def __str__(self):
         return self.title
 
@@ -32,6 +36,9 @@ class Comment(models.Model):
     likes = models.ManyToManyField(User, related_name='liked_comments', blank=True)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    image = models.ImageField(upload_to='comment_images/', null=True, blank=True)
+    video = models.FileField(upload_to='comment_videos/', null=True, blank=True)
+
     def __str__(self):
         return f"{self.topic.title} - {self.author.username}"
 

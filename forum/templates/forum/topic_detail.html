@@ -1,113 +1,452 @@
 {% extends 'base.html' %}
+{% load forum_tags %}
+{% include 'forum/sidebar.html' %}
+
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 py-6">
+<div class="max-w-4xl mx-auto px-4 py-4">
 
-  <!-- 📝 Topic Info -->
-  <div class="bg-white shadow rounded-lg p-6 mb-6">
-    <h1 class="text-2xl font-bold text-purple-800 mb-2">📝 {{ topic.title }}</h1>
-    <p class="mb-1"><strong>📁 Category:</strong> {{ topic.category.name }}</p>
-    <p class="mb-1"><strong>👤 Author:</strong> 
-      <a href="{% url 'accounts:user_profile' username=topic.author.username %}" class="text-purple-600 font-semibold hover:underline">
-        {{ topic.author.username }}
-      </a>
-    </p>
-    <p class="text-gray-500 text-sm mb-4"><strong>🕒 Created:</strong> {{ topic.date_created|date:"Y-m-d H:i" }}</p>
-
-    <div class="text-gray-800 mb-4">
-      {{ topic.content }}
-    </div>
-
-    {% if topic.tags.exists %}
-      <div class="mb-4">
-        <strong>🏷️ Tags:</strong>
-        {% for tag in topic.tags.all %}
-          <a href="{% url 'topics_by_tag' tag.slug %}" class="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm mr-2 mb-1 hover:bg-purple-200">
-            #{{ tag.name }}
-          </a>
-        {% endfor %}
+  <!-- Topic Header -->
+  <div class="bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200/50 shadow-sm p-5 mb-4">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex-1">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2 leading-tight">{{ topic.title }}</h1>
+        <div class="flex items-center flex-wrap gap-3 text-sm text-gray-600">
+          <div class="flex items-center">
+            <div class="w-7 h-7 rounded-full gradient-bg text-white flex items-center justify-center text-xs font-semibold mr-2">
+              {{ topic.author.username|first|upper }}
+            </div>
+            <div>
+              <a href="{% url 'accounts:user_profile' username=topic.author.username %}" class="font-medium text-primary-600 hover:text-primary-700 transition-colors">
+                {{ topic.author.username }}
+              </a>
+              <div class="text-xs text-gray-500">{{ topic.date_created|date:"d M Y, H:i" }}</div>
+            </div>
+          </div>
+          {% if topic.category %}
+          <span class="bg-gradient-to-r from-accent-100 to-accent-200 text-accent-700 px-2 py-1 rounded-full text-xs font-medium">
+            <i class="fas fa-folder mr-1"></i>{{ topic.category.name }}
+          </span>
+          {% endif %}
+        </div>
       </div>
-    {% endif %}
-
-    {% if user.is_authenticated %}
-      <div class="flex items-center gap-3 mb-4 flex-wrap">
-        {% if user == topic.author %}
-          <form method="post" action="{% url 'delete_topic' topic.id %}">
-            {% csrf_token %}
-            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">🗑️ Delete</button>
-          </form>
-        {% endif %}
-        <form method="post" action="{% url 'toggle_like' topic.id %}">
+      {% if user.is_authenticated and user == topic.author %}
+      <div class="flex items-center space-x-2 ml-4">
+        <a href="{% url 'edit_topic' topic.id %}" class="text-blue-600 hover:text-blue-700 transition-colors p-1.5 hover:bg-blue-50 rounded">
+          <i class="fas fa-edit text-sm"></i>
+        </a>
+        <form method="post" action="{% url 'delete_topic' topic.id %}" class="inline" onsubmit="return confirm('Bu konuyu silmek istediğinizden emin misiniz?')">
           {% csrf_token %}
-          <button class="text-xl hover:scale-110 transition">
-            {% if liked %}💔{% else %}❤️{% endif %}
+          <button type="submit" class="text-red-600 hover:text-red-700 transition-colors p-1.5 hover:bg-red-50 rounded">
+            <i class="fas fa-trash text-sm"></i>
           </button>
         </form>
-        <span class="font-semibold">{{ likes_count }}</span>
-        <button onclick="toggleCommentForm()" class="ml-auto text-lg hover:underline">
-          💬 ({{ comments|length }})
-        </button>
       </div>
+      {% endif %}
+    </div>
+
+    <!-- Tags -->
+    {% if topic.tags.exists %}
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      {% for tag in topic.tags.all %}
+        <a href="{% url 'topics_by_tag' tag.slug %}"
+           class="text-xs bg-gradient-to-r from-primary-100 to-primary-200 hover:from-primary-500 hover:to-primary-600 hover:text-white text-primary-700 px-2 py-1 rounded-full transition-all duration-200 font-medium">
+          #{{ tag.name }}
+        </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Stats with Like Button -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4 text-sm text-gray-500">
+        <span class="flex items-center hover:text-green-500 transition-colors">
+          <i class="far fa-eye mr-1.5 text-green-400"></i>{{ topic.views|default:"0" }}
+        </span>
+        <button id="toggleComments" class="flex items-center hover:text-blue-500 transition-colors cursor-pointer focus:outline-none">
+          <i class="far fa-comment mr-1.5 text-blue-400"></i>{{ comments.count|default:"0" }}
+          <i id="commentToggleIcon" class="fas fa-chevron-down ml-1.5 transition-transform duration-200 text-xs"></i>
+        </button>
+        <!-- Media indicators -->
+        {% if topic.image %}
+        <span class="flex items-center text-purple-500">
+          <i class="far fa-image mr-1"></i>Görsel
+        </span>
+        {% endif %}
+        {% if topic.video %}
+        <span class="flex items-center text-purple-500">
+          <i class="far fa-play-circle mr-1"></i>Video
+        </span>
+        {% endif %}
+      </div>
+      
+      {% if user.is_authenticated %}
+      <form method="post" action="{% url 'toggle_like' topic.id %}" class="inline">
+        {% csrf_token %}
+        <button type="submit"
+                class="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm
+                       {% if liked %}bg-gradient-to-r from-red-500 to-pink-600 text-white
+                       {% else %}bg-gray-100 hover:bg-gray-200 text-gray-700{% endif %}">
+          <i class="{% if liked %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+          <span>{{ likes_count|default:"0" }}</span>
+        </button>
+      </form>
+      {% else %}
+      <span class="flex items-center text-sm text-gray-500">
+        <i class="far fa-heart mr-1.5 text-red-400"></i>{{ likes_count|default:"0" }}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Topic Content -->
+  <div class="bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200/50 shadow-sm p-5 mb-4">
+    <div class="prose max-w-none text-gray-800 leading-relaxed text-sm">
+      {{ topic.content|linebreaks }}
+    </div>
+    
+    <!-- Media Content -->
+    {% if topic.image or topic.video %}
+    <div class="mt-4 space-y-4">
+      {% if topic.image %}
+      <div class="relative">
+        <div class="bg-gray-50 rounded-lg p-2">
+          <img src="{{ topic.image.url }}" alt="{{ topic.title }}"
+               class="w-48 max-w-sm h-auto mx-auto rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-300"
+               onclick="openImageModal('{{ topic.image.url }}')">
+          <div class="flex items-center justify-between mt-2 px-2">
+            <span class="text-xs text-gray-500 flex items-center">
+              <i class="fas fa-image mr-1"></i>Görsel
+            </span>
+            {% if user.is_authenticated %}
+            <button onclick="processWithGAN('{{ topic.image.url }}')" 
+                    class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-medium transition-colors">
+              <i class="fas fa-magic mr-1"></i>GAN İşle
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      {% if topic.video %}
+      <div class="relative">
+        <div class="bg-gray-50 rounded-lg p-2">
+          <video controls class="w-48 max-w-sm mx-auto rounded-lg shadow-md">
+            <source src="{{ topic.video.url }}" type="video/mp4">
+            Tarayıcınız video oynatmayı desteklemiyor.
+          </video>
+          <div class="flex items-center justify-between mt-2 px-2">
+            <span class="text-xs text-gray-500 flex items-center">
+              <i class="fas fa-video mr-1"></i>Video
+            </span>
+            {% if user.is_authenticated %}
+            <button onclick="processVideoWithGAN('{{ topic.video.url }}')" 
+                    class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-medium transition-colors">
+              <i class="fas fa-video mr-1"></i>Video GAN
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 
-  <!-- 💬 Comments Section -->
-  <div class="bg-white shadow rounded-lg p-6 mb-6">
-    <h2 class="text-xl font-semibold text-purple-800 mb-4">💬 Comments</h2>
-    {% for comment in comments %}
-      <div class="mb-4 border-b pb-3">
-        <p class="mb-1 text-sm">
-          <a href="{% url 'accounts:user_profile' username=comment.author.username %}" class="text-purple-600 font-medium hover:underline">
-            {{ comment.author.username }}
-          </a>
-          <span class="text-gray-500">— {{ comment.date_created|date:"Y-m-d H:i" }}</span>
-        </p>
-        <p class="text-gray-700 mb-2">{{ comment.content }}</p>
-
-        {% if user.is_authenticated %}
-          <div class="flex items-center gap-2">
-            <!-- Yorum beğeni butonu -->
-            <form method="post" action="{% url 'toggle_comment_like' comment.id %}" class="inline">
-              {% csrf_token %}
-              <button class="text-lg hover:scale-110 transition">
-                {% if user in comment.likes.all %}💔{% else %}👍{% endif %}
-              </button>
-            </form>
-            <span class="text-sm text-gray-600">{{ comment.likes.count }}</span>
-
-            <!-- Yorum silme butonu -->
-            {% if user == comment.author %}
-              <form method="post" action="{% url 'delete_comment' comment.id %}" class="inline">
+  <!-- Comments Section (Collapsible) -->
+  <div id="commentsSection" class="bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200/50 shadow-sm hidden">
+    <div class="p-4 border-b border-gray-200/50 bg-gradient-to-r from-secondary-50 to-secondary-100">
+      <h2 class="text-lg font-bold text-gray-800 flex items-center">
+        <i class="fas fa-comments mr-2 text-secondary-600"></i>
+        Yorumlar ({{ comments.count|default:"0" }})
+      </h2>
+    </div>
+    
+    <div class="divide-y divide-gray-200/50">
+      {% for comment in comments %}
+      <div class="p-4">
+        <div class="flex items-start space-x-3">
+          <!-- Avatar -->
+          <div class="w-8 h-8 rounded-full gradient-bg text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+            {{ comment.author.username|first|upper }}
+          </div>
+          
+          <!-- Comment Content -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2 mb-2">
+              <a href="{% url 'accounts:user_profile' username=comment.author.username %}" 
+                 class="font-medium text-sm text-primary-600 hover:text-primary-700 transition-colors">
+                {{ comment.author.username }}
+              </a>
+              <span class="text-xs text-gray-500">
+                {{ comment.date_created|date:"d M Y, H:i" }}
+              </span>
+              {% if comment.is_edited %}
+              <span class="text-xs text-gray-400 italic">(düzenlendi)</span>
+              {% endif %}
+              <!-- Media indicators for comments -->
+              {% if comment.image %}
+              <span class="text-xs text-purple-500 flex items-center">
+                <i class="fas fa-image mr-1"></i>
+              </span>
+              {% endif %}
+              {% if comment.video %}
+              <span class="text-xs text-purple-500 flex items-center">
+                <i class="fas fa-video mr-1"></i>
+              </span>
+              {% endif %}
+            </div>
+            
+            <div class="prose prose-sm max-w-none text-gray-800 mb-2 text-sm">
+              {{ comment.content|linebreaks }}
+            </div>
+            
+            <!-- Comment Media -->
+            {% if comment.image or comment.video %}
+            <div class="mb-3 space-y-3">
+              {% if comment.image %}
+              <div class="relative">
+                <div class="bg-gray-50 rounded-lg p-2 inline-block">
+                  <img src="{{ comment.image.url }}" alt="Comment image"
+                       class="w-48 max-w-sm h-auto rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-300"
+                       onclick="openImageModal('{{ comment.image.url }}')">
+                  <div class="flex items-center justify-between mt-1">
+                    <span class="text-xs text-gray-500">Görsel</span>
+                    {% if user.is_authenticated %}
+                    <button onclick="processWithGAN('{{ comment.image.url }}')" 
+                            class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs">
+                      <i class="fas fa-magic"></i>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              
+              {% if comment.video %}
+              <div class="relative">
+                <div class="bg-gray-50 rounded-lg p-2 inline-block">
+                  <video controls class="w-48 max-w-sm h-auto rounded-lg shadow-sm">
+                    <source src="{{ comment.video.url }}" type="video/mp4">
+                  </video>
+                  <div class="flex items-center justify-between mt-1">
+                    <span class="text-xs text-gray-500">Video</span>
+                    {% if user.is_authenticated %}
+                    <button onclick="processVideoWithGAN('{{ comment.video.url }}')" 
+                            class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs">
+                      <i class="fas fa-video"></i>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Comment Actions -->
+            <div class="flex items-center space-x-3 text-xs">
+              {% if user.is_authenticated %}
+              <form method="post" action="{% url 'toggle_comment_like' comment.id %}" class="inline">
                 {% csrf_token %}
-                <button type="submit" class="text-red-500 hover:underline text-sm">
-                  🗑
+                <button type="submit" class="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors">
+                  <i class="{% if user in comment.likes.all %}fas fa-heart text-red-500{% else %}far fa-heart{% endif %}"></i>
+                  <span>{{ comment.likes.count|default:"0" }}</span>
                 </button>
               </form>
+              
+              <a href="{% url 'reply_comment' comment.id %}" 
+                 class="text-gray-500 hover:text-blue-500 transition-colors">
+                <i class="fas fa-reply mr-1"></i>Yanıtla
+              </a>
+              {% endif %}
+              
+              {% if user.is_authenticated and user == comment.author %}
+              <a href="{% url 'edit_comment' comment.id %}" 
+                 class="text-gray-500 hover:text-blue-500 transition-colors">
+                <i class="fas fa-edit mr-1"></i>Düzenle
+              </a>
+              <form method="post" action="{% url 'delete_comment' comment.id %}" class="inline" 
+                    onsubmit="return confirm('Bu yorumu silmek istediğinizden emin misiniz?')">
+                {% csrf_token %}
+                <button type="submit" class="text-gray-500 hover:text-red-500 transition-colors">
+                  <i class="fas fa-trash mr-1"></i>Sil
+                </button>
+              </form>
+              {% endif %}
+            </div>
+            
+            <!-- Replies -->
+            {% if comment.replies.exists %}
+            <div class="mt-3 pl-3 border-l-2 border-gray-200 space-y-3">
+              {% for reply in comment.replies.all %}
+              <div class="flex items-start space-x-2">
+                <div class="w-6 h-6 rounded-full gradient-bg text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                  {{ reply.author.username|first|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <a href="{% url 'accounts:user_profile' username=reply.author.username %}" 
+                       class="font-medium text-xs text-primary-600 hover:text-primary-700">
+                      {{ reply.author.username }}
+                    </a>
+                    <span class="text-xs text-gray-500">
+                      {{ reply.date_created|date:"d M Y, H:i" }}
+                    </span>
+                  </div>
+                  <div class="prose prose-sm max-w-none text-gray-700 text-xs">
+                    {{ reply.content|linebreaks }}
+                  </div>
+                  <!-- Reply actions -->
+                  <div class="flex items-center space-x-2 mt-2 text-xs">
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'toggle_comment_like' reply.id %}" class="inline">
+                      {% csrf_token %}
+                      <button type="submit" class="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors">
+                        <i class="{% if user in reply.likes.all %}fas fa-heart text-red-500{% else %}far fa-heart{% endif %}"></i>
+                        <span>{{ reply.likes.count|default:"0" }}</span>
+                      </button>
+                    </form>
+                    {% else %}
+                    <span class="flex items-center space-x-1 text-gray-500">
+                      <i class="far fa-heart"></i>
+                      <span>{{ reply.likes.count|default:"0" }}</span>
+                    </span>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated and user == reply.author %}
+                    <a href="{% url 'edit_comment' reply.id %}" 
+                       class="text-gray-500 hover:text-blue-500 transition-colors">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <form method="post" action="{% url 'delete_comment' reply.id %}" class="inline" 
+                          onsubmit="return confirm('Bu yanıtı silmek istediğinizden emin misiniz?')">
+                      {% csrf_token %}
+                      <button type="submit" class="text-gray-500 hover:text-red-500 transition-colors">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
             {% endif %}
           </div>
-        {% endif %}
+        </div>
       </div>
-    {% empty %}
-      <p class="italic text-gray-500">No comments yet. Be the first to comment!</p>
-    {% endfor %}
-  </div>
-
-  <!-- ✍️ Comment Form -->
-  {% if user.is_authenticated %}
-    <div id="comment-form" class="bg-white shadow rounded-lg p-6 mb-6 hidden">
-      <h3 class="text-lg font-semibold text-green-700 mb-2">✍️ Add a Comment</h3>
-      <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">✅ Submit</button>
-      </form>
+      {% empty %}
+      <div class="p-8 text-center text-gray-500">
+        <i class="fas fa-comments text-3xl mb-2 text-gray-300"></i>
+        <p class="text-sm">Henüz yorum yapılmamış. İlk yorumu siz yapın!</p>
+      </div>
+      {% endfor %}
     </div>
-    <script>
-      function toggleCommentForm() {
-        let f = document.getElementById('comment-form');
-        f.classList.toggle('hidden');
-      }
-    </script>
-  {% endif %}
 
+    {% if user.is_authenticated %}
+    <div class="p-4 bg-gray-50/50 border-t border-gray-200/50 text-center">
+      <a href="{% url 'create_comment' topic.id %}"
+        class="inline-flex items-center gradient-bg text-white px-5 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300 text-sm">
+        <i class="fas fa-comment-alt mr-2"></i>Yeni Yorum Yap
+      </a>
+    </div>
+    {% endif %}
+  </div>
 </div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50" onclick="closeImageModal()">
+  <div class="max-w-4xl max-h-full p-4 relative">
+    <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg">
+    <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center">
+      <i class="fas fa-times"></i>
+    </button>
+    <!-- Image info -->
+    <div class="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded">
+      <p class="text-sm text-center">Tam boyut görüntü - Kapatmak için tıklayın</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.getElementById('toggleComments');
+    const commentsSection = document.getElementById('commentsSection');
+    const toggleIcon = document.getElementById('commentToggleIcon');
+    
+    if (toggleButton && commentsSection && toggleIcon) {
+        toggleButton.addEventListener('click', function() {
+            if (commentsSection.classList.contains('hidden')) {
+                commentsSection.classList.remove('hidden');
+                toggleIcon.style.transform = 'rotate(180deg)';
+            } else {
+                commentsSection.classList.add('hidden');
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+        });
+    }
+    
+    // ESC tuşu ile modal kapatma
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+});
+
+function openImageModal(imageSrc) {
+    const modalImage = document.getElementById('modalImage');
+    const imageModal = document.getElementById('imageModal');
+    
+    if (modalImage && imageModal) {
+        modalImage.src = imageSrc;
+        imageModal.classList.remove('hidden');
+        imageModal.classList.add('flex');
+        document.body.style.overflow = 'hidden'; // Body scroll'u engelle
+    }
+}
+
+function closeImageModal() {
+    const imageModal = document.getElementById('imageModal');
+    
+    if (imageModal) {
+        imageModal.classList.add('hidden');
+        imageModal.classList.remove('flex');
+        document.body.style.overflow = 'auto'; // Body scroll'u geri aç
+    }
+}
+
+function processWithGAN(imageUrl) {
+    // GAN processing placeholder
+    showNotification('GAN işleme özelliği yakında eklenecek!', 'info');
+    console.log('İşlenecek görsel:', imageUrl);
+    // TODO: GAN API call implementation
+}
+
+function processVideoWithGAN(videoUrl) {
+    // Video GAN processing placeholder
+    showNotification('Video GAN işleme özelliği yakında eklenecek!', 'info');
+    console.log('İşlenecek video:', videoUrl);
+    // TODO: Video GAN API call implementation
+}
+
+function showNotification(message, type = 'info') {
+    // Basit bildirim gösterimi
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white text-sm transition-all duration-300 ${
+        type === 'info' ? 'bg-blue-500' : 
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 'bg-gray-500'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+
 {% endblock %}

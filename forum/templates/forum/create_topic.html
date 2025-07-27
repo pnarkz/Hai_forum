@@ -1,107 +1,175 @@
 {% extends 'base.html' %}
-{% load form_tags %}
+{% load forum_tags %}
 
 {% block content %}
-<style>
-  .form-label {
-    font-weight: 600;
-    color: #4a4a4a;
-    margin-bottom: 5px;
-  }
-  .form-input,
-  .form-textarea {
-    border: none;
-    border-bottom: 2px solid #999;
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-    background-color: transparent;
-    transition: border-color 0.3s ease;
-  }
-  .form-input:focus,
-  .form-textarea:focus {
-    outline: none;
-    border-bottom: 2px solid #007BFF;
-  }
-  .form-section {
-    margin-bottom: 20px;
-  }
-  .tag-info {
-    font-size: 0.85em;
-    color: #777;
-  }
-  .btn-custom {
-    padding: 10px 20px;
-    background-color: #6c63ff;
-    color: white;
-    border-radius: 8px;
-    font-weight: bold;
-    border: none;
-    transition: background-color 0.3s;
-  }
-  .btn-custom:hover {
-    background-color: #5548db;
-  }
-  .messages {
-    padding: 0;
-    list-style: none;
-    margin-bottom: 20px;
-  }
-  .error {
-    background: #ffebee;
-    color: #c62828;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    border-left: 4px solid #c62828;
-  }
-</style>
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <!-- Header -->
+  <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold text-transparent bg-clip-text gradient-bg flex items-center">
+        <i class="fas fa-plus-circle mr-3 text-primary-600"></i>
+        Yeni Konu Oluştur
+      </h1>
+      <a href="{% url 'topic_list' %}" class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Konulara Dön
+      </a>
+    </div>
+    <p class="text-gray-600">Topluluğunuzla paylaşmak istediğiniz yeni bir konu oluşturun</p>
+  </div>
 
-<div class="container mt-5" style="max-width: 720px;">
-  <h2 style="font-size: 2rem; color: #333; margin-bottom: 20px;">
-    📝 <span style="color: #6c63ff;">Create a <strong>New Topic</strong></span>
-  </h2>
-
-  {# Genel form hataları #}
+  <!-- Form Errors -->
   {% if form.non_field_errors %}
-    <ul class="messages">
+    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
       {% for error in form.non_field_errors %}
-        <li class="error">❗ {{ error }}</li>
+        <div class="flex items-center text-red-700">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          {{ error }}
+        </div>
       {% endfor %}
-    </ul>
+    </div>
   {% endif %}
 
-  <form method="post">
+  <!-- Form -->
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
     {% csrf_token %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Main Form Content -->
+      <div class="lg:col-span-2 space-y-6">
 
-    <div class="form-section">
-      <label class="form-label">📌 Title</label>
-      {{ form.title|add_class:"form-input" }}
-      {{ form.title.errors }}
-    </div>
+        <!-- Title -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+          <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <i class="fas fa-heading mr-2 text-primary-600"></i>
+            Başlık
+          </label>
+          {{ form.title|add_class:"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"|add_placeholder:"Konunuz için açıklayıcı bir başlık girin..."|set_autofocus }}
+          {% if form.title.errors %}
+            <div class="mt-2 text-sm text-red-600 flex items-center">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              {{ form.title.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
 
-    <div class="form-section">
-      <label class="form-label">💬 Content</label>
-      {{ form.content|add_class:"form-textarea"|add_attr:"rows:6" }}
-      {{ form.content.errors }}
-    </div>
+        <!-- Content -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+          <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <i class="fas fa-align-left mr-2 text-secondary-600"></i>
+            İçerik
+          </label>
+          {{ form.content|add_class:"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none"|add_attr:"rows:8"|add_placeholder:"Konunuzu detaylı bir şekilde açıklayın..." }}
+          {% if form.content.errors %}
+            <div class="mt-2 text-sm text-red-600 flex items-center">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              {{ form.content.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
 
-    <div class="form-section">
-      <label class="form-label">📂 Category</label>
-      {{ form.category|add_class:"form-input" }}
-      {{ form.category.errors }}
-    </div>
+        <!-- Media Upload -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+          <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <i class="fas fa-image mr-2 text-accent-600"></i>
+            Medya Dosyaları
+          </label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Image Upload -->
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-2">Fotoğraf</label>
+              {{ form.image|add_class:"w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-colors" }}
+              {% if form.image.errors %}
+                <div class="mt-1 text-xs text-red-600">{{ form.image.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <!-- Video Upload -->
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-2">Video</label>
+              {{ form.video|add_class:"w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-secondary-50 file:text-secondary-700 hover:file:bg-secondary-100 transition-colors" }}
+              {% if form.video.errors %}
+                <div class="mt-1 text-xs text-red-600">{{ form.video.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">
+            <i class="fas fa-info-circle mr-1"></i>
+            Desteklenen formatlar: JPG, PNG, GIF (fotoğraf) | MP4, WebM (video) | Max 10MB
+          </p>
+        </div>
+      </div>
 
-    <div class="form-section">
-      <label class="form-label">🏷️ Tags</label>
-      {{ form.tags|add_class:"form-input" }}
-      <p class="tag-info">Separate with commas, e.g. <code>django, ai, backend</code></p>
-      {{ form.tags.errors }}
-    </div>
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Category -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+          <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <i class="fas fa-folder mr-2 text-primary-600"></i>
+            Kategori
+          </label>
+          {{ form.category|add_class:"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200" }}
+          {% if form.category.errors %}
+            <div class="mt-2 text-sm text-red-600 flex items-center">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              {{ form.category.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
 
-    <div class="d-flex justify-content-between mt-4">
-      <a href="{% url 'topic_list' %}" style="color:#888; font-size: 0.95em;">← Back to Topics</a>
-      <button type="submit" class="btn-custom">➕ Create Topic</button>
+        <!-- Tags -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+          <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <i class="fas fa-tags mr-2 text-secondary-600"></i>
+            Etiketler
+          </label>
+          {{ form.tags|add_class:"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"|add_placeholder:"django, ai, python" }}
+          {% if form.tags.errors %}
+            <div class="mt-2 text-sm text-red-600 flex items-center">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              {{ form.tags.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+          <div class="space-y-3">
+            <button type="submit" class="w-full gradient-bg text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center">
+              <i class="fas fa-paper-plane mr-2"></i>
+              Konuyu Yayınla
+            </button>
+            <a href="{% url 'topic_list' %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
+              <i class="fas fa-times mr-2"></i>
+              İptal Et
+            </a>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="bg-gradient-to-r from-accent-50 to-accent-100 rounded-xl border border-accent-200/50 p-6">
+          <h3 class="text-sm font-semibold text-accent-800 mb-3 flex items-center">
+            <i class="fas fa-lightbulb mr-2"></i>
+            İpuçları
+          </h3>
+          <ul class="text-xs text-accent-700 space-y-2">
+            <li class="flex items-start">
+              <i class="fas fa-check-circle mr-2 mt-0.5 text-accent-500"></i>
+              Açık ve anlaşılır bir başlık seçin
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-check-circle mr-2 mt-0.5 text-accent-500"></i>
+              Konuyu detaylı bir şekilde açıklayın
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-check-circle mr-2 mt-0.5 text-accent-500"></i>
+              İlgili etiketler ekleyin
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-check-circle mr-2 mt-0.5 text-accent-500"></i>
+              Medya dosyaları konuyu desteklesin
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </form>
 </div>

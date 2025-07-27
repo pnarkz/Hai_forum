@@ -3,16 +3,19 @@ from django.urls import path, include
 from django.contrib.auth.views import LogoutView, LoginView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
-    home_view, topic_list, topics_by_category, create_topic, topic_detail, toggle_like,
+    home , topic_list, topics_by_category, create_topic,create_comment, topic_detail, toggle_like,
     toggle_comment_like, delete_topic, delete_comment, restore_topic, restore_comment,
     edit_topic, edit_comment, reply_comment, trash_bin, admin_trash_bin,
     category_list, search_topics, topics_by_tag, notifications_view, mark_all_notifications_read
 )
 from forum import views 
 urlpatterns = [
-    path('', home_view, name='home'),
+    path('', home, name='home'),
     path('logout/', LogoutView.as_view(next_page='accounts:login'), name='logout'),
     path('accounts/login/', LoginView.as_view(template_name='accounts/login.html'), name='login'),
+
+
+    path('topics/<int:topic_id>/comment/', create_comment, name='create_comment'),
 
     path('topics/', topic_list, name='topic_list'),
     path('categories/<int:category_id>/', topics_by_category, name='topics_by_category'),

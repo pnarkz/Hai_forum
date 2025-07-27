@@ -26,6 +26,12 @@ ALLOWED_HOSTS = []
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10MB
+# İzin verilen dosya türleri
+ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.avi']
+
 #LOGIN_REDIRECT_URL = '/accounts/profile/{{ username }}/'
 
 # Application definition
@@ -43,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'channels',
+    'widget_tweaks',
 ]
 
 # Channels backend olarak Redis kullanacağız

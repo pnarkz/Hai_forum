@@ -1,85 +1,377 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<div class="container" style="max-width:900px; margin:40px auto;">
 
-  <h1 style="font-size:2rem; margin-bottom:30px; color:#4a148c;">🏠 Forum Home</h1>
+<div class="container mx-auto px-4 sm:px-6 py-6 max-w-7xl">
 
-  <div style="display:flex; flex-wrap:wrap; gap:30px; justify-content:space-between;">
-
-    <!-- 🔥 Latest Topics -->
-    <div class="card" style="flex:1 1 280px; padding:20px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
-      <h2 style="font-size:1.25rem; margin-bottom:15px; color:#7b1fa2;">🧵 Latest Topics</h2>
-      {% if latest_topics %}
-        <ul style="list-style:none; padding:0; margin:0;">
-          {% for topic in latest_topics %}
-            <li style="margin-bottom:12px;">
-              <a href="{% url 'topic_detail' topic.id %}"
-                 style="font-weight:600; color:#007BFF; text-decoration:none;">
-                {{ topic.title }}
-              </a>
-              <p style="margin:4px 0 0; color:#666; font-size:0.9rem;">
-                by 
-                <a href="{% url 'accounts:user_profile' username=topic.author.username %}"
-                   style="color:#333; text-decoration:none; font-weight:500;">
-                  {{ topic.author.username }}
-                </a>
-                on <time>{{ topic.date_created|date:"Y-m-d H:i" }}</time>
-              </p>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p style="color:#666; font-style:italic;">No recent topics.</p>
-      {% endif %}
+  <!-- Hero Section -->
+  <div class="bg-gradient-to-r from-primary-500 via-accent-500 to-secondary-500 rounded-2xl p-8 mb-8 text-white card-shadow">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h1 class="text-3xl font-bold mb-2 flex items-center">
+          <i class="fas fa-brain mr-3 text-white/90"></i>
+          AI Forum'a Hoş Geldiniz
+        </h1>
+        <p class="text-white/90 text-lg">Yapay zeka ve makine öğrenmesi tartışmalarının en yenileri</p>
+      </div>
+      <div class="flex space-x-3">
+        <a href="{% url 'create_topic' %}" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center">
+          <i class="fas fa-plus mr-2"></i>
+          Yeni Konu
+        </a>
+      </div>
     </div>
-
-    <!-- 💬 Recent Comments -->
-    <div class="card" style="flex:1 1 280px; padding:20px; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
-      <h2 style="font-size:1.25rem; margin-bottom:15px; color:#1b5e20;">💬 Recent Comments</h2>
-      {% if latest_comments %}
-        <ul style="list-style:none; padding:0; margin:0;">
-          {% for comment in latest_comments %}
-            <li style="margin-bottom:12px;">
-              <span style="color:#333;">“{{ comment.content|truncatechars:60 }}”</span>
-              <p style="margin:4px 0 0; color:#666; font-size:0.9rem;">
-                on 
-                <a href="{% url 'topic_detail' comment.topic.id %}"
-                   style="color:#007BFF; text-decoration:none;">
-                  {{ comment.topic.title }}
-                </a>
-                by 
-                <a href="{% url 'accounts:user_profile' username=comment.author.username %}"
-                   style="color:#333; text-decoration:none; font-weight:500;">
-                  {{ comment.author.username }}
-                </a>
-                — <time>{{ comment.date_created|date:"Y-m-d H:i" }}</time>
-              </p>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p style="color:#666; font-style:italic;">No recent comments.</p>
-      {% endif %}
-    </div>
-
   </div>
 
-  <!-- 🚀 Action Buttons -->
-  <div style="margin-top:30px; display:flex; flex-wrap:wrap; gap:15px; justify-content:center;">
-    <a href="{% url 'topic_list' %}"
-       style="background:#7b1fa2; color:#fff; padding:10px 20px; border:none; border-radius:6px; text-decoration:none;">
-      📚 Browse All Topics
-    </a>
-    <a href="{% url 'create_topic' %}"
-       style="background:#388E3C; color:#fff; padding:10px 20px; border:none; border-radius:6px; text-decoration:none;">
-      ➕ Create New Topic
-    </a>
-    <a href="{% url 'accounts:leaderboard' %}"
-       style="background:#FFA000; color:#fff; padding:10px 20px; border:none; border-radius:6px; text-decoration:none;">
-      🏆 View Leaderboard
-    </a>
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 card-shadow text-center">
+      <div class="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-comments text-white text-xl"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-800">{{ total_topics|default:"0" }}</h3>
+      <p class="text-gray-600">Aktif Konu</p>
+    </div>
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 card-shadow text-center">
+      <div class="w-12 h-12 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-users text-white text-xl"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-800">{{ total_users|default:"0" }}</h3>
+      <p class="text-gray-600">Üye Sayısı</p>
+    </div>
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 card-shadow text-center">
+      <div class="w-12 h-12 bg-gradient-to-r from-accent-500 to-accent-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-comment-dots text-white text-xl"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-800">{{ total_comments|default:"0" }}</h3>
+      <p class="text-gray-600">Toplam Yorum</p>
+    </div>
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 card-shadow text-center">
+      <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-fire text-white text-xl"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-800">{{ online_users|default:"0" }}</h3>
+      <p class="text-gray-600">Bugün Aktif</p>
+    </div>
   </div>
 
+  <!-- İçerik Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Top Topics (2/3) -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+          <i class="fas fa-fire mr-3 text-accent-500"></i> 
+          Popüler Konular
+        </h2>
+        <a href="{% url 'topic_list' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center">
+          Tümünü Gör <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+      </div>
+      
+      {% for topic in top_topics %}
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6 hover:border-primary-300 transition-all duration-300">
+        <div class="flex items-start">
+          <div class="flex-shrink-0 mr-4">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center text-white shadow-md">
+              {{ topic.author.username|first|upper }}
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <a href="{% url 'topic_detail' topic.id %}" class="text-lg font-semibold text-gray-800 hover:text-primary-600 mb-2 line-clamp-2 block transition-colors">
+              {{ topic.title }}
+            </a>
+            <div class="flex items-center text-sm text-gray-500 mb-3 space-x-4">
+              <div class="flex items-center">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-r from-secondary-400 to-secondary-600 flex items-center justify-center text-white text-xs font-medium mr-2">
+                  {{ topic.author.username|first|upper }}
+                </div>
+                <span class="font-medium text-gray-700">{{ topic.author.username }}</span>
+              </div>
+              <span class="flex items-center">
+                <i class="far fa-calendar mr-1 text-gray-400"></i>
+                {{ topic.date_created|date:"d M, Y" }}
+              </span>
+            </div>
+            <p class="text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+              {{ topic.content|truncatechars:150 }}
+            </p>
+            <div class="flex justify-between items-center">
+              <div class="flex space-x-6">
+                <span class="text-sm text-gray-500 flex items-center hover:text-red-500 transition-colors">
+                  <i class="far fa-heart mr-2 text-red-400"></i> 
+                  {{ topic.likes.count|default:"0" }}
+                </span>
+                <span class="text-sm text-gray-500 flex items-center hover:text-blue-500 transition-colors">
+                  <i class="far fa-comment mr-2 text-blue-400"></i> 
+                  {{ topic.comment_set.count|default:"0" }}
+                </span>
+                <span class="text-sm text-gray-500 flex items-center hover:text-green-500 transition-colors">
+                  <i class="far fa-eye mr-2 text-green-400"></i> 
+                  {{ topic.views|default:"0" }}
+                </span>
+              </div>
+              <div class="flex space-x-2">
+                {% if topic.category %}
+                <span class="text-xs bg-gradient-to-r from-accent-100 to-accent-200 text-accent-700 px-3 py-1 rounded-full font-medium">
+                  {{ topic.category.name }}
+                </span>
+                {% endif %}
+                {% if topic.image %}
+                <span class="text-xs text-purple-500 flex items-center bg-purple-50 px-2 py-1 rounded-full">
+                  <i class="far fa-image mr-1"></i>
+                </span>
+                {% endif %}
+                {% if topic.video %}
+                <span class="text-xs text-purple-500 flex items-center bg-purple-50 px-2 py-1 rounded-full">
+                  <i class="far fa-play-circle mr-1"></i>
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 p-12 text-center">
+        <div class="w-16 h-16 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-comment-slash text-2xl text-gray-400"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-600 mb-2">Henüz konu yok</h3>
+        <p class="text-gray-500 mb-4">İlk konuyu siz açın ve tartışmayı başlatın!</p>
+        <a href="{% url 'create_topic' %}" class="bg-gradient-to-r from-primary-500 to-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300">
+          Yeni Konu Aç
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Sidebar Content (1/3) -->
+    <div class="space-y-6">
+      
+      <!-- Son Yorumlar -->
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow overflow-hidden">
+        <div class="p-6 border-b border-gray-200/50 bg-gradient-to-r from-secondary-50 to-secondary-100">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-comments mr-3 text-secondary-600"></i> 
+            Son Yorumlar
+          </h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200/50">
+          {% for comment in recent_comments %}
+          <div class="p-4 hover:bg-gray-50/50 transition-colors">
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-accent-400 to-accent-600 flex items-center justify-center text-white text-xs font-medium">
+                  {{ comment.author.username|first|upper }}
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-800 mb-2 line-clamp-2 leading-relaxed">
+                  "{{ comment.content|truncatechars:80 }}"
+                </p>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <p class="flex items-center">
+                    <i class="fas fa-arrow-right mr-1"></i>
+                    <a href="{% url 'topic_detail' comment.topic.id %}" class="text-primary-600 hover:text-primary-700 font-medium">
+                      {{ comment.topic.title|truncatechars:25 }}
+                    </a>
+                  </p>
+                  <span class="flex items-center hover:text-red-500 transition-colors">
+                    <i class="far fa-heart mr-1 text-red-400"></i> 
+                    {{ comment.likes.count|default:"0" }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="p-6 text-center">
+            <div class="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+              <i class="fas fa-comment-dots text-xl text-gray-400"></i>
+            </div>
+            <p class="text-gray-500 text-sm">Henüz yorum yok</p>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <div class="p-4 bg-gray-50/50 border-t border-gray-200/50">
+          <a href="{% url 'topic_list' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center">
+            Tüm Yorumları Gör <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- En Çok Tartışılan Konular -->
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow overflow-hidden">
+        <div class="p-6 border-b border-gray-200/50 bg-gradient-to-r from-orange-50 to-red-100">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-fire mr-3 text-orange-600"></i> 
+            En Çok Tartışılan
+          </h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200/50">
+          {% for hot_topic in most_discussed_topics %}
+          <div class="p-4 hover:bg-gray-50/50 transition-colors">
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-red-600 flex items-center justify-center text-white text-xs font-medium">
+                  {{ hot_topic.author.username|first|upper }}
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <a href="{% url 'topic_detail' hot_topic.id %}" class="text-sm font-medium text-gray-800 hover:text-primary-600 mb-2 line-clamp-2 block transition-colors">
+                  {{ hot_topic.title }}
+                </a>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <div class="flex space-x-3">
+                    <span class="flex items-center hover:text-red-500 transition-colors">
+                      <i class="far fa-heart mr-1 text-red-400"></i> 
+                      {{ hot_topic.likes.count }}
+                    </span>
+                    <span class="flex items-center hover:text-blue-500 transition-colors">
+                      <i class="far fa-comment mr-1 text-blue-400"></i> 
+                      {{ hot_topic.comment_set.count }}
+                    </span>
+                    <span class="flex items-center hover:text-green-500 transition-colors">
+                      <i class="far fa-eye mr-1 text-green-400"></i> 
+                      {{ hot_topic.views|default:"0" }}
+                    </span>
+                  </div>
+                  {% if hot_topic.category %}
+                  <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
+                    {{ hot_topic.category.name }}
+                  </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="p-6 text-center">
+            <div class="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+              <i class="fas fa-fire text-xl text-gray-400"></i>
+            </div>
+            <p class="text-gray-500 text-sm">Henüz tartışma yok</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Popüler Etiketler -->
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow overflow-hidden">
+        <div class="p-6 border-b border-gray-200/50 bg-gradient-to-r from-accent-50 to-accent-100">
+          <h3 class="font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-hashtag mr-3 text-accent-600"></i> 
+            Popüler Etiketler
+          </h3>
+        </div>
+        
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2">
+            {% for tag in popular_tags %}
+            <a href="{% url 'topics_by_tag' tag.slug %}" class="tag-hover text-sm bg-gradient-to-r from-primary-100 to-primary-200 hover:from-primary-500 hover:to-primary-600 hover:text-white text-primary-700 px-3 py-2 rounded-full transition-all duration-200 font-medium">
+              #{{ tag.name }}
+            </a>
+            {% empty %}
+            <a href="#" class="tag-hover text-sm bg-gradient-to-r from-primary-100 to-primary-200 hover:from-primary-500 hover:to-primary-600 hover:text-white text-primary-700 px-3 py-2 rounded-full transition-all duration-200 font-medium">
+              #yapay-zeka
+            </a>
+            <a href="#" class="tag-hover text-sm bg-gradient-to-r from-secondary-100 to-secondary-200 hover:from-secondary-500 hover:to-secondary-600 hover:text-white text-secondary-700 px-3 py-2 rounded-full transition-all duration-200 font-medium">
+              #makine-öğrenmesi
+            </a>
+            <a href="#" class="tag-hover text-sm bg-gradient-to-r from-accent-100 to-accent-200 hover:from-accent-500 hover:to-accent-600 hover:text-white text-accent-700 px-3 py-2 rounded-full transition-all duration-200 font-medium">
+              #deep-learning
+            </a>
+            <a href="#" class="tag-hover text-sm bg-gradient-to-r from-green-100 to-green-200 hover:from-green-500 hover:to-green-600 hover:text-white text-green-700 px-3 py-2 rounded-full transition-all duration-200 font-medium">
+              #python
+            </a>
+            <a href="#" class="tag-hover text-sm bg-gradient-to-r from-blue-100 to-blue-200 hover:from-blue-500 hover:to-blue-600 hover:text-white text-blue-700 px-3 py-2 rounded-full transition-all duration-200 font-medium">
+              #tensorflow
+            </a>
+            <a href="#" class="tag-hover text-sm bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-500 hover:to-purple-600 hover:text-white text-purple-700 px-3 py-2 rounded-full transition-all duration-200 font-medium">
+              #nlp
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Online Kullanıcılar -->
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow overflow-hidden">
+        <div class="p-6 border-b border-gray-200/50 bg-gradient-to-r from-green-50 to-emerald-100">
+          <h3 class="font-semibold text-gray-800 flex items-center">
+            <div class="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></div>
+            Online Kullanıcılar
+          </h3>
+        </div>
+        
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2">
+            {% for user in online_users_list %}
+            <div class="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg">
+              <div class="w-6 h-6 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-medium">
+                {{ user.username|first|upper }}
+              </div>
+              <span class="text-sm text-gray-700">{{ user.username }}</span>
+            </div>
+            {% empty %}
+            <div class="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg">
+              <div class="w-6 h-6 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-medium">
+                A
+              </div>
+              <span class="text-sm text-gray-700">Alice</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg">
+              <div class="w-6 h-6 rounded-full bg-gradient-to-r from-secondary-400 to-secondary-600 flex items-center justify-center text-white text-xs font-medium">
+                B
+              </div>
+              <span class="text-sm text-gray-700">Bob</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg">
+              <div class="w-6 h-6 rounded-full bg-gradient-to-r from-accent-400 to-accent-600 flex items-center justify-center text-white text-xs font-medium">
+                C
+              </div>
+              <span class="text-sm text-gray-700">Charlie</span>
+            </div>
+            {% endfor %}
+          </div>
+          <p class="text-xs text-gray-500 mt-3">{{ online_users|default:"0" }} kullanıcı online</p>
+        </div>
+      </div>
+
+      <!-- Forum İstatistikleri -->
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow overflow-hidden">
+        <div class="p-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-50 to-cyan-100">
+          <h3 class="font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-chart-bar mr-3 text-blue-600"></i> 
+            Forum İstatistikleri
+          </h3>
+        </div>
+        
+        <div class="p-6 space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Toplam Üye:</span>
+            <span class="font-semibold text-gray-800">{{ total_users|default:"0" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Toplam Konu:</span>
+            <span class="font-semibold text-gray-800">{{ total_topics|default:"0" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Toplam Yorum:</span>
+            <span class="font-semibold text-gray-800">{{ total_comments|default:"0" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">En Son Üye:</span>
+            <span class="font-semibold text-primary-600">{{ latest_user.username|default:"@newuser123" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
 {% endblock %}
