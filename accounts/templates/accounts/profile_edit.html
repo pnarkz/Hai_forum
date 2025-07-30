@@ -30,22 +30,22 @@
         <h3 class="text-xl font-semibold text-blue-700">🔐 Account Info</h3>
 
         <div class="space-y-1">
-          {{ u_form.username|label_with_icon:"👤" }}
+          {{ u_form.username|label_with_icon:"👤"|safe }}
           {{ u_form.username|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Enter your username" |set_autofocus |set_required }}
         </div>
 
         <div class="space-y-1">
-          {{ u_form.email|label_with_icon:"📧" }}
+          {{ u_form.email|label_with_icon:"📧"|safe }}
           {{ u_form.email|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Your email" |set_required }}
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="space-y-1">
-            {{ u_form.first_name|label_with_icon:"🪪" }}
+            {{ u_form.first_name|label_with_icon:"🪪"|safe }}
             {{ u_form.first_name|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"First name" }}
           </div>
           <div class="space-y-1">
-            {{ u_form.last_name|label_with_icon:"🧾" }}
+            {{ u_form.last_name|label_with_icon:"🧾"|safe }}
             {{ u_form.last_name|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Last name" }}
           </div>
         </div>
@@ -58,38 +58,38 @@
         <div class="flex items-center gap-6">
           <div class="relative">
             <img id="avatarPreview"
-                 src="{% if profile_picture_url %}{{ profile_picture_url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
+                 src="{% if profile_picture_url %}{{ profile_picture_url }}{% else %}{% static 'img/default-avatar-user-icon.png' %}{% endif %}"
                  alt="Avatar Preview"
                  class="w-24 h-24 rounded-full object-cover border border-gray-300 shadow-sm">
           </div>
           <div class="flex-1 space-y-1">
-            {{ p_form.profile_picture|label_with_icon:"📷 Profile Picture" }}
+            {{ p_form.profile_picture|label_with_icon:"📷 Profile Picture"|safe }}
             {{ p_form.profile_picture|add_class:"w-full" }}
           </div>
         </div>
 
         <div class="space-y-1">
-          {{ p_form.bio|label_with_icon:"📝" }}
+          {{ p_form.bio|label_with_icon:"📝"|safe }}
           {{ p_form.bio|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Tell us a bit about yourself..." }}
         </div>
 
         <div class="space-y-1">
-          {{ p_form.location|label_with_icon:"📍" }}
+          {{ p_form.location|label_with_icon:"📍"|safe }}
           {{ p_form.location|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Your location" }}
         </div>
 
         <div class="space-y-1">
-          {{ p_form.website|label_with_icon:"🌐" }}
+          {{ p_form.website|label_with_icon:"🌐"|safe }}
           {{ p_form.website|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Website URL" }}
         </div>
 
         <div class="space-y-1">
-          {{ p_form.twitter|label_with_icon:"🐦" }}
+          {{ p_form.twitter|label_with_icon:"🐦"|safe }}
           {{ p_form.twitter|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"Twitter URL" }}
         </div>
 
         <div class="space-y-1">
-          {{ p_form.linkedin|label_with_icon:"🔗" }}
+          {{ p_form.linkedin|label_with_icon:"🔗"|safe }}
           {{ p_form.linkedin|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" |add_placeholder:"LinkedIn URL" }}
         </div>
       </div>

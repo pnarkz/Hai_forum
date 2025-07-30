@@ -12,7 +12,8 @@ from .views import (
     CustomPasswordChangeView,
     signup,
     activate,
-)
+    dashboard_view,
+) 
 
 app_name = 'accounts'
 
@@ -22,7 +23,7 @@ urlpatterns = [
     path('profile/', my_profile_view, name='my_profile'),
     path('profile/<str:username>/', user_profile_view, name='user_profile'),
     path('leaderboard/', leaderboard_view, name='leaderboard'),
-
+    path('dashboard/', dashboard_view, name='dashboard'),
     # Kayıt ve aktivasyon
     path('signup/', signup, name='signup'),
     path('activate/<uidb64>/<token>/', activate, name='activate'),

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">👤 User Dashboard</h1>
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- Konular -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold text-blue-700 mb-4">📌 Recent Topics</h2>
+      <ul class="space-y-3">
+        {% for topic in topics %}
+          <li>
+            <a href="{% url 'topic_detail' topic.id %}" class="text-blue-600 hover:underline font-medium">{{ topic.title }}</a>
+            <p class="text-sm text-gray-500">{{ topic.date_created|date:"d M Y H:i" }}</p>
+          </li>
+        {% empty %}
+          <li class="text-gray-500">Henüz bir konu açmadınız.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Yorumlar -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold text-purple-700 mb-4">💬 Recent Comments</h2>
+      <ul class="space-y-3">
+        {% for comment in comments %}
+          <li>
+            <p class="text-gray-800">{{ comment.content|truncatechars:100 }}</p>
+            <p class="text-sm text-gray-500">{{ comment.date_created|date:"d M Y H:i" }}</p>
+          </li>
+        {% empty %}
+          <li class="text-gray-500">Henüz yorum yapmadınız.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -74,7 +74,6 @@ def signup(request):
 
     return render(request, "registration/signup.html", {"form": form})
 
-    return render(request, "registration/signup.html", {"form": form})
 
 
 def activate(request, uidb64, token):
@@ -202,3 +201,16 @@ def profile_edit(request):
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'accounts/password_change.html'
     success_url = reverse_lazy('accounts:my_profile')
+
+@login_required
+def dashboard_view(request):
+    user = request.user
+    topics = Topic.objects.filter(author=user, is_deleted=False).order_by('-date_created')[:5]
+    comments = Comment.objects.filter(author=user, is_deleted=False).order_by('-date_created')[:5]
+
+    context = {
+        'topics': topics,
+        'comments': comments,
+    }
+    return render(request, 'accounts/dashboard.html', context)
+

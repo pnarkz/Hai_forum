@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Son Aktiviteler{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-4">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Son Aktiviteler</h1>
+
+  {% if logs %}
+    <ul class="space-y-4">
+      {% for log in logs %}
+        <li class="bg-white p-4 rounded shadow">
+          <p class="text-sm text-gray-700">
+            {{ log.timestamp|date:"d M Y H:i" }} -
+            {% if log.action == "created_topic" %}
+              Yeni konu oluşturuldu: 
+              <a href="{% url 'topic_detail' log.object_id %}" class="text-blue-600 font-semibold">
+                {{ log.content_object.title }}
+              </a>
+            {% elif log.action == "created_comment" %}
+              Yorum yapıldı.
+            {% elif log.action == "liked_topic" %}
+              Bir konuyu beğendiniz.
+            {% else %}
+              {{ log.action }}
+            {% endif %}
+          </p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-gray-500">Henüz aktivite bulunamadı.</p>
+  {% endif %}
+</div>
+{% endblock %}

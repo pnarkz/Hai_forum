@@ -89,6 +89,18 @@
           <i class="{% if liked %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
           <span>{{ likes_count|default:"0" }}</span>
         </button>
+        <form method="post" action="{% url 'toggle_favorite_topic' topic.id %}" class="inline ml-2">
+          {% csrf_token %}
+          <button type="submit"
+                class="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm
+                      {% if topic in user.accounts_profile.favorites.all %}
+                        bg-yellow-400 text-white hover:bg-yellow-500
+                      {% else %}
+                        bg-gray-100 hover:bg-gray-200 text-gray-700
+                      {% endif %}">
+          <i class="{% if topic in user.accounts_profile.favorites.all %}fas fa-star{% else %}far fa-star{% endif %}"></i>
+          <span>{% if topic in user.accounts_profile.favorites.all %}Favoride{% else %}Favoriye Ekle{% endif %}</span>
+        </button>
       </form>
       {% else %}
       <span class="flex items-center text-sm text-gray-500">

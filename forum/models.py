@@ -3,6 +3,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from taggit.managers import TaggableManager
 from django.contrib.postgres.fields import JSONField
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.conf import settings
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -23,6 +26,8 @@ class Topic(models.Model):
     image = models.ImageField(upload_to='topic_images/', null=True, blank=True)
     video = models.FileField(upload_to='topic_videos/', null=True, blank=True)
     views = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+    favorited_by = models.ManyToManyField(User, related_name='favorited_topics', blank=True)
     
     def __str__(self):
         return self.title
@@ -62,3 +67,14 @@ class Notification(models.Model):
         return f"{self.sender} → {self.recipient} ({self.notification_type})"
 
 
+
+class ActivityLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    action = models.CharField(max_length=100)  # örn: "created_topic", "liked_comment"
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']

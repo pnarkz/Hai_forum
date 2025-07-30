@@ -13,6 +13,8 @@ from .models import Topic, Comment, Category, Notification
 from .forms import TopicForm, CommentForm
 from django.db.models.functions import Coalesce
 from taggit.models import Tag
+from forum.utils import log_activity
+from forum.models import ActivityLog
 
 def home(request):
     # Genel ana sayfa: en çok yorum alan, en çok tartışılan, son yorumlar, popüler etiketler ve sayılar
@@ -78,6 +80,7 @@ def create_topic(request):
             topic = form.save(commit=False)
             topic.author = request.user
             topic.save()
+            log_activity(request.user, topic, "created_topic") 
             return redirect('topic_list')
     else:
         form = TopicForm()
@@ -117,6 +120,7 @@ def create_comment(request, topic_id):
             comment.topic  = topic
             comment.author = request.user
             comment.save()
+            log_activity(request.user, comment, "created_comment")
 
             # Bildirim
             if request.user != topic.author:
@@ -155,6 +159,7 @@ def toggle_like(request, topic_id):
         topic.likes.remove(user)
     else:
         topic.likes.add(user)
+        log_activity(user, topic, "liked_topic")
         if topic.author != user:
             Notification.objects.create(
                 recipient         = topic.author,
@@ -179,6 +184,7 @@ def toggle_comment_like(request, comment_id):
         comment.likes.remove(user)
     else:
         comment.likes.add(user)
+        log_activity(user, comment, "liked_comment")
         if comment.author != user:
             Notification.objects.create(
                 recipient         = comment.author,
@@ -226,6 +232,7 @@ def delete_topic(request, topic_id):
     topic.is_deleted = True
     topic.deleted_at = timezone.now()
     topic.save()
+    log_activity(request.user, topic, "deleted_topic")
     messages.success(request, "Topic moved to trash.")
     return redirect('topic_list')
 
@@ -238,6 +245,7 @@ def delete_comment(request, comment_id):
     comment.is_deleted = True
     comment.deleted_at = timezone.now()
     comment.save()
+    log_activity(request.user, comment, "deleted_comment")
     messages.success(request, "Comment moved to trash.")
     return redirect('topic_detail', topic_id=comment.topic.id)
 
@@ -271,6 +279,7 @@ def edit_topic(request, topic_id):
         form = TopicForm(request.POST, instance=topic)
         if form.is_valid():
             form.save()
+            log_activity(request.user, topic, "updated_topic")
             messages.success(request, "Topic updated successfully.")
             return redirect('topic_detail', topic_id=topic.id)
     else:
@@ -288,6 +297,7 @@ def edit_comment(request, comment_id):
         if content:
             comment.content = content
             comment.save()
+            log_activity(request.user, comment, "updated_comment")
             messages.success(request, "Comment updated successfully.")
             return redirect('topic_detail', topic_id=comment.topic.id)
     return render(request, 'forum/edit_comment.html', {'comment': comment})
@@ -299,6 +309,7 @@ def restore_topic(request, topic_id):
         topic.is_deleted = False
         topic.deleted_at = None
         topic.save()
+        log_activity(request.user, topic, "restored_topic")
     return redirect('trash_bin' if not request.user.is_staff else 'admin_trash_bin')
 
 @login_required
@@ -308,6 +319,7 @@ def restore_comment(request, comment_id):
         comment.is_deleted = False
         comment.deleted_at = None
         comment.save()
+        log_activity(request.user, comment, "restored_comment")
     return redirect('trash_bin' if not request.user.is_staff else 'admin_trash_bin')
 
 @login_required
@@ -323,6 +335,7 @@ def reply_comment(request, comment_id):
             reply.author = request.user
             reply.parent = parent
             reply.save()
+            log_activity(request.user, reply, "replied_comment")
 
             # Ana yorumu yapan kişiye bildirim
             if parent.author != request.user:
@@ -425,3 +438,42 @@ def read_notification(request, pk):
         url = notification.extra_data.get("url")
 
     return redirect(url or "topic_list")
+
+
+@login_required
+def favorite_topics_view(request):
+    favorites = request.user.accounts_profile.favorites.filter(is_deleted=False)
+    return render(request, 'forum/favorite_topics.html', {'topics': favorites})
+
+@login_required
+def followed_tags_view(request):
+    followed_tags = request.user.accounts_profile.followed_tags.all()
+    return render(request, 'forum/followed_tags.html', {'tags': followed_tags})
+
+@login_required
+def my_topics_view(request):
+    my_topics = Topic.objects.filter(author=request.user, is_deleted=False).order_by('-date_created')
+    return render(request, 'forum/my_topics.html', {'my_topics': my_topics})
+
+
+
+@login_required
+def recent_activity_view(request):
+    logs = ActivityLog.objects.filter(user=request.user).select_related('content_type')[:20]
+    return render(request, 'forum/recent_activity.html', {'logs': logs})
+
+@login_required
+def toggle_favorite_topic(request, topic_id):
+    topic = get_object_or_404(Topic, id=topic_id, is_deleted=False)
+    profile = request.user.accounts_profile
+
+    if topic in profile.favorites.all():
+        profile.favorites.remove(topic)
+        print("Favoriden çıkarıldı:", topic.title)
+    else:
+        profile.favorites.add(topic)
+        print("Favoriye eklendi:", topic.title)
+
+    print("Favoriler:", profile.favorites.all())  # Bu satırla kontrol et
+    return redirect('topic_detail', topic_id=topic.id)
+

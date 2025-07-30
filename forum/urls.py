@@ -45,4 +45,10 @@ urlpatterns = [
     path('api/', include('forum.api.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-]
+    path('recent-activity/', views.recent_activity_view, name='recent_activity'),
+    path('favorite-topics/', views.favorite_topics_view, name='favorite_topics'),
+    path('followed-tags/', views.followed_tags_view, name='followed_tags'),
+    path('my-topics/', views.my_topics_view, name='my_topics'),
+    path('topics/<int:topic_id>/favorite/', views.toggle_favorite_topic, name='toggle_favorite_topic'),
+
+    ]

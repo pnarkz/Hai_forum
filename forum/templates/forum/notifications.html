@@ -1,110 +1,291 @@
 {% extends 'base.html' %}
+{% load forum_tags %}
+
 {% block content %}
-<style>
-  .notification-card {
-    padding: 15px 20px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transition: background 0.3s ease;
-  }
-  .notification-unread {
-    background-color: #fff9e6;
-    border-left: 5px solid #f39c12;
-  }
-  .notification-read {
-    background-color: #f5f5f5;
-    border-left: 5px solid #bbb;
-  }
-  .notification-text {
-    font-size: 16px;
-    margin-bottom: 6px;
-    color: #333;
-  }
-  .notification-text a {
-    color: #007BFF;
-    text-decoration: none;
-    font-weight: 500;
-  }
-  .notification-sender a {
-    color: #333;
-    font-weight: 600;
-    margin-right: 6px;
-    text-decoration: none;
-  }
-  .notification-timestamp {
-    font-size: 0.85rem;
-    color: #888;
-  }
+<div class="container mx-auto px-4 sm:px-6 py-8 max-w-4xl">
 
-  .mark-all-form {
-    display: inline-block;
-    margin-bottom: 20px;
-  }
-
-  .mark-all-btn {
-    background: #4a148c;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
-  }
-</style>
-
-<div class="container" style="max-width:800px; margin:40px auto;">
-  <h2 style="font-size:1.8rem; color:#4a148c; margin-bottom:10px;">🔔 Your Notifications</h2>
-
-  {% if notifications %}
-    <form method="post" action="/api/notifications/mark_all_read/" class="mark-all-form">
-      {% csrf_token %}
-      <button type="submit" class="mark-all-btn">✅ Mark all as read</button>
-    </form>
-
-    {% for n in notifications %}
-      <div class="notification-card {% if not n.is_read %}notification-unread{% else %}notification-read{% endif %}">
-        <p class="notification-text">
-          {% if n.sender %}
-            <span class="notification-sender">
-              <a href="{% url 'accounts:user_profile' username=n.sender.username %}">{{ n.sender.username }}</a>
-            </span>
-            &mdash;
-          {% endif %}
-
-          {% if n.notification_type == 'comment' %}
-            <a href="{% url 'read_notification' pk=n.id %}">
-              📝 commented on your topic 
-              <strong>"{{ n.extra_data.topic_title|default_if_none:'(unknown topic)' }}"</strong>
-              {% if n.extra_data.comment_excerpt %}
-                — &ldquo;{{ n.extra_data.comment_excerpt|truncatechars:80 }}&rdquo;
+  <!-- Header Section -->
+  <div class="bg-gradient-to-r from-primary-500 via-accent-500 to-secondary-500 rounded-2xl p-8 mb-8 text-white card-shadow">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div class="flex items-center space-x-4">
+        <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+          <i class="fas fa-bell text-2xl text-white/90"></i>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold mb-2">Bildirimler</h1>
+          <p class="text-white/90 text-lg">
+            {% if notifications %}
+              {{ notifications.count }} bildiriminiz var
+              {% if unread_count %}
+                ({{ unread_count }} okunmamış)
               {% endif %}
-            </a>
-          {% elif n.notification_type == 'like' %}
-            <a href="{% url 'read_notification' pk=n.id %}">
-              ❤️ liked your post on 
-              <strong>"{{ n.extra_data.topic_title|default_if_none:'(unknown topic)' }}"</strong>.
-            </a>
-          {% elif n.notification_type == 'reply' %}
-            <a href="{% url 'read_notification' pk=n.id %}">
-              💬 replied to your comment on 
-              <strong>"{{ n.extra_data.topic_title|default_if_none:'(unknown topic)' }}"</strong>.
-            </a>
-          {% else %}
-            <span>You have a new notification.</span>
-          {% endif %}
-        </p>
-        <span class="notification-timestamp">{{ n.timestamp|date:"Y-m-d H:i" }}</span>
+            {% else %}
+              Henüz bildiriminiz yok
+            {% endif %}
+          </p>
+        </div>
       </div>
-    {% endfor %}
+      
+      {% if notifications and unread_count %}
+      <form method="post" action="{% url 'mark_all_notifications_read' %}" class="inline-block">
+        {% csrf_token %}
+        <button type="submit" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center">
+          <i class="fas fa-check-double mr-2"></i>
+          Tümünü Okundu İşaretle
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Bildirimler -->
+  {% if notifications %}
+    <div class="space-y-4">
+      {% for notification in notifications %}
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow overflow-hidden transition-all duration-300 hover:shadow-lg
+                  {% if not notification.is_read %}border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/50 to-white/80{% endif %}">
+        
+        <div class="p-6">
+          <div class="flex items-start space-x-4">
+            
+            <!-- Notification Icon -->
+            <div class="flex-shrink-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center
+                          {% if notification.notification_type == 'comment' %}bg-gradient-to-r from-blue-400 to-blue-600
+                          {% elif notification.notification_type == 'like' %}bg-gradient-to-r from-red-400 to-red-600
+                          {% elif notification.notification_type == 'reply' %}bg-gradient-to-r from-green-400 to-green-600
+                          {% else %}bg-gradient-to-r from-gray-400 to-gray-600{% endif %} shadow-md">
+                <i class="fas 
+                         {% if notification.notification_type == 'comment' %}fa-comment
+                         {% elif notification.notification_type == 'like' %}fa-heart
+                         {% elif notification.notification_type == 'reply' %}fa-reply
+                         {% else %}fa-bell{% endif %} text-white"></i>
+              </div>
+            </div>
+
+            <!-- Notification Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  
+                  <!-- Sender Info -->
+                  {% if notification.sender %}
+                  <div class="flex items-center space-x-2 mb-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-secondary-400 to-secondary-600 flex items-center justify-center text-white text-sm font-medium">
+                      {{ notification.sender.username|first|upper }}
+                    </div>
+                    <a href="{% url 'accounts:user_profile' username=notification.sender.username %}" 
+                       class="font-semibold text-gray-800 hover:text-primary-600 transition-colors">
+                      {{ notification.sender.username }}
+                    </a>
+                    {% if not notification.is_read %}
+                    <span class="bg-primary-500 text-white text-xs px-2 py-1 rounded-full font-medium animate-pulse">
+                      Yeni
+                    </span>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+
+                  <!-- Notification Message -->
+                  <div class="mb-3">
+                    <a href="{% url 'read_notification' pk=notification.id %}" 
+                       class="text-gray-800 hover:text-primary-600 transition-colors block">
+                      
+                      {% if notification.notification_type == 'comment' %}
+                        <div class="flex items-start space-x-2">
+                          <i class="fas fa-comment-dots text-blue-500 mt-1"></i>
+                          <div>
+                            <p class="font-medium">Konunuza yorum yaptı</p>
+                            {% if notification.topic %}
+                            <p class="text-sm text-gray-600 mt-1">
+                              Konu: <span class="font-medium">"{{ notification.topic.title|truncatechars:50 }}"</span>
+                            </p>
+                            {% endif %}
+                            {% if notification.comment and notification.comment.content %}
+                            <p class="text-sm text-gray-500 italic mt-2 bg-gray-50 p-3 rounded-lg">
+                              "{{ notification.comment.content|truncatechars:100 }}"
+                            </p>
+                            {% endif %}
+                          </div>
+                        </div>
+                        
+                      {% elif notification.notification_type == 'like' %}
+                        <div class="flex items-start space-x-2">
+                          <i class="fas fa-heart text-red-500 mt-1"></i>
+                          <div>
+                            {% if notification.comment %}
+                              <p class="font-medium">Yorumunuzu beğendi</p>
+                            {% else %}
+                              <p class="font-medium">Konunuzu beğendi</p>
+                            {% endif %}
+                            {% if notification.topic %}
+                            <p class="text-sm text-gray-600 mt-1">
+                              Konu: <span class="font-medium">"{{ notification.topic.title|truncatechars:50 }}"</span>
+                            </p>
+                            {% endif %}
+                          </div>
+                        </div>
+                        
+                      {% elif notification.notification_type == 'reply' %}
+                        <div class="flex items-start space-x-2">
+                          <i class="fas fa-reply text-green-500 mt-1"></i>
+                          <div>
+                            <p class="font-medium">Yorumunuza cevap verdi</p>
+                            {% if notification.topic %}
+                            <p class="text-sm text-gray-600 mt-1">
+                              Konu: <span class="font-medium">"{{ notification.topic.title|truncatechars:50 }}"</span>
+                            </p>
+                            {% endif %}
+                            {% if notification.comment and notification.comment.content %}
+                            <p class="text-sm text-gray-500 italic mt-2 bg-gray-50 p-3 rounded-lg">
+                              "{{ notification.comment.content|truncatechars:100 }}"
+                            </p>
+                            {% endif %}
+                          </div>
+                        </div>
+                        
+                      {% else %}
+                        <div class="flex items-start space-x-2">
+                          <i class="fas fa-info-circle text-gray-500 mt-1"></i>
+                          <p class="font-medium">Yeni bir bildiriminiz var</p>
+                        </div>
+                      {% endif %}
+                    </a>
+                  </div>
+
+                  <!-- Timestamp -->
+                  <div class="flex items-center text-sm text-gray-500 space-x-4">
+                    <span class="flex items-center">
+                      <i class="far fa-clock mr-1"></i>
+                      {{ notification.timestamp|date:"d M Y, H:i" }}
+                    </span>
+                    {% if notification.topic %}
+                    <a href="{% url 'topic_detail' notification.topic.id %}" 
+                       class="text-primary-600 hover:text-primary-700 font-medium flex items-center">
+                      <i class="fas fa-external-link-alt mr-1"></i>
+                      Konuya Git
+                    </a>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-start space-x-2 ml-4">
+                  {% if not notification.is_read %}
+                  <button onclick="markAsRead({{ notification.id }})" 
+                          class="text-primary-600 hover:text-primary-700 p-2 rounded-lg hover:bg-primary-50 transition-all duration-200" 
+                          title="Okundu işaretle">
+                    <i class="fas fa-check text-sm"></i>
+                  </button>
+                  {% endif %}
+                  
+                  <button onclick="deleteNotification({{ notification.id }})" 
+                          class="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" 
+                          title="Sil">
+                    <i class="fas fa-trash text-sm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination (if needed) -->
+    {% if notifications.has_other_pages %}
+    <div class="flex justify-center mt-8">
+      <nav class="flex space-x-2">
+        {% if notifications.has_previous %}
+        <a href="?page={{ notifications.previous_page_number }}" 
+           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <i class="fas fa-chevron-left mr-1"></i> Önceki
+        </a>
+        {% endif %}
+        
+        <span class="px-4 py-2 bg-primary-500 text-white rounded-lg">
+          {{ notifications.number }} / {{ notifications.paginator.num_pages }}
+        </span>
+        
+        {% if notifications.has_next %}
+        <a href="?page={{ notifications.next_page_number }}" 
+           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          Sonraki <i class="fas fa-chevron-right ml-1"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
   {% else %}
-    <p style="font-style:italic; color:#666;">📭 You have no notifications yet.</p>
+    <!-- Empty State -->
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 p-12 text-center card-shadow">
+      <div class="w-20 h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fas fa-bell-slash text-3xl text-gray-400"></i>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-600 mb-3">Henüz bildiriminiz yok</h3>
+      <p class="text-gray-500 mb-6 max-w-md mx-auto">
+        Forum'da aktif olduğunuzda, beğeniler, yorumlar ve cevaplar hakkında bildirimler alacaksınız.
+      </p>
+      <div class="space-x-4">
+        <a href="{% url 'topic_list' %}" 
+           class="bg-gradient-to-r from-primary-500 to-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300 inline-flex items-center">
+          <i class="fas fa-list mr-2"></i>
+          Konulara Göz At
+        </a>
+        <a href="{% url 'create_topic' %}" 
+           class="bg-gradient-to-r from-secondary-500 to-secondary-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300 inline-flex items-center">
+          <i class="fas fa-plus mr-2"></i>
+          Yeni Konu Aç
+        </a>
+      </div>
+    </div>
   {% endif %}
 
-  <p style="margin-top:30px; text-align:right;">
-    <a href="{% url 'topic_list' %}" style="text-decoration:none; color:#007BFF; font-weight:500;">
-      ← Back to Topics
+  <!-- Back Link -->
+  <div class="text-center mt-8">
+    <a href="{% url 'topic_list' %}" 
+       class="text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center space-x-2">
+      <i class="fas fa-arrow-left"></i>
+      <span>Konulara Dön</span>
     </a>
-  </p>
+  </div>
 </div>
+
+<script>
+function markAsRead(notificationId) {
+  fetch(`/notifications/${notificationId}/mark-read/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      location.reload();
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function deleteNotification(notificationId) {
+  if (confirm('Bu bildirimi silmek istediğinizden emin misiniz?')) {
+    fetch(`/notifications/${notificationId}/delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        location.reload();
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+}
+</script>
 {% endblock %}

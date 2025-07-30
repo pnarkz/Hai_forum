@@ -33,6 +33,7 @@ def add_placeholder(field, placeholder):
 def set_required(field):
     field.field.widget.attrs['required'] = 'required'
     return field
+
 @register.filter(name='set_autofocus')
 def set_autofocus(field):
     """
@@ -41,3 +42,13 @@ def set_autofocus(field):
     """
     field.field.widget.attrs['autofocus'] = 'autofocus'
     return field
+
+
+@register.filter
+def label_with_icon(bound_field, icon):
+    """
+    Form alanı için label'ı ikonu ile birlikte döndürür.
+    Kullanımı: {{ form.field|label_with_icon:"🔑" }}
+    """
+    label = bound_field.label or ''
+    return f'<label for="{bound_field.id_for_label}" class="font-semibold text-sm text-gray-700 flex items-center gap-2">{icon} {label}</label>'
