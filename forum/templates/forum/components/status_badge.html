@@ -1,0 +1,18 @@
+{% comment %}
+Reusable Status Badge Component
+Props:
+- text (required)
+- icon (optional)
+- color (optional): Tailwind renk adı (default: blue)
+Usage:
+{% include 'forum/components/status_badge.html' with text='Python' icon='fas fa-code' color='green' %}
+{% endcomment %}
+
+{% with color=color|default:'blue' %}
+  <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ color }}-100 text-{{ color }}-800 border border-{{ color }}-200">
+    {% if icon %}
+      <i class="{{ icon }} mr-1 text-{{ color }}-500"></i>
+    {% endif %}
+    {{ text }}
+  </span>
+{% endwith %}

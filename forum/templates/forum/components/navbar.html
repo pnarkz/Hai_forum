@@ -1,0 +1,74 @@
+<nav class="bg-white/95 backdrop-blur-md border-b border-blue-200/60 shadow-sm sticky top-0 z-20">
+  <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+    
+    <!-- Logo ve Menü -->
+    <div class="flex items-center space-x-6">
+      <a href="{% url 'home' %}" class="text-2xl font-bold text-transparent bg-clip-text gradient-bg flex items-center"
+         aria-label="Ana sayfa" title="Ana sayfa">
+        <i class="fas fa-brain mr-3 text-blue-600" aria-hidden="true"></i>
+        AI Forum
+      </a>
+      
+      <div class="hidden md:flex space-x-6" role="navigation" aria-label="Üst menü">
+        <a href="{% url 'topic_list' %}" class="nav-link text-slate-700 hover:text-blue-600 flex items-center" 
+           aria-label="Tüm Konular" title="Tüm Konular">
+          <i class="fas fa-list mr-2" aria-hidden="true"></i>
+          Tüm Konular
+        </a>
+        <a href="{% url 'create_topic' %}" class="nav-link text-slate-700 hover:text-blue-500 flex items-center"
+           aria-label="Yeni Konu Oluştur" title="Yeni Konu Oluştur">
+          <i class="fas fa-plus mr-2" aria-hidden="true"></i>
+          Yeni Konu
+        </a>
+        <a href="{% url 'accounts:leaderboard' %}" class="nav-link text-slate-700 hover:text-blue-700 flex items-center"
+           aria-label="Lider Tablosu" title="Lider Tablosu">
+          <i class="fas fa-trophy mr-2" aria-hidden="true"></i>
+          Lider Tablosu
+        </a>
+      </div>
+    </div>
+
+    <!-- Arama ve Kullanıcı -->
+    <div class="flex items-center space-x-4">
+      <form method="get" action="{% url 'search_topics' %}" class="relative" role="search" aria-label="Konu Ara">
+        <input type="text" name="q" placeholder="Ara..." 
+               class="pl-10 pr-4 py-2 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm bg-white/90 backdrop-blur-sm transition-all duration-200"
+               aria-label="Konu Ara" title="Konu Ara">
+        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+      </form>
+
+      {% if request.user.is_authenticated %}
+        <!-- Bildirimler -->
+        <a href="{% url 'notifications' %}" class="relative text-slate-700 hover:text-blue-600 transition-colors" 
+           aria-label="Bildirimler" title="Bildirimler">
+          <i class="far fa-bell text-xl" aria-hidden="true"></i>
+          {% if unread_count %}
+            <span class="absolute -top-1 -right-1 bg-gradient-to-r from-blue-500 to-sky-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse"
+                  role="status" aria-label="{{ unread_count }} okunmamış bildirim var">
+              {{ unread_count }}
+            </span>
+          {% endif %}
+        </a>
+
+        <!-- Kullanıcı Profili -->
+        <a href="{% url 'accounts:user_profile' username=request.user.username %}" 
+           class="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+           aria-label="Profil Sayfam" title="Profil Sayfam">
+          {% if request.user.profile.profile_picture %}
+            <img src="{{ request.user.profile.profile_picture.url }}" alt="Profil Resmi" class="w-8 h-8 rounded-full object-cover shadow-md">
+          {% else %}
+            <div class="w-8 h-8 rounded-full gradient-bg text-white flex items-center justify-center uppercase font-semibold shadow-md"
+                 aria-hidden="true">
+              {{ request.user.username|first }}
+            </div>
+          {% endif %}
+        </a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="text-slate-700 hover:text-blue-600 transition-colors"
+           aria-label="Giriş Yap" title="Giriş Yap">Giriş Yap</a>
+        <a href="{% url 'accounts:signup' %}" class="gradient-bg hover:shadow-lg text-white px-4 py-2 rounded-lg text-sm transition-all duration-300 font-medium"
+           aria-label="Kayıt Ol" title="Kayıt Ol">Kayıt Ol</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

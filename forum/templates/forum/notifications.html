@@ -160,7 +160,7 @@
                       {{ notification.timestamp|date:"d M Y, H:i" }}
                     </span>
                     {% if notification.topic %}
-                    <a href="{% url 'topic_detail' notification.topic.id %}" 
+                    <a href="{% url 'topic_detail' notification.topic.slug %}" 
                        class="text-primary-600 hover:text-primary-700 font-medium flex items-center">
                       <i class="fas fa-external-link-alt mr-1"></i>
                       Konuya Git

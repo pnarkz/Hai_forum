@@ -105,6 +105,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'forum.context_processors.unread_notifications',
+                'forum.context_processors.all_categories',
             ],
         },
     },

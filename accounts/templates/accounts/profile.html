@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load math_filters %}
+{% load static %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+  <!-- PROFİL BAŞLIK ALANI -->
+  <div class="relative overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl shadow-xl">
+    <div class="relative z-10 px-6 py-8">  <!-- py değeri artırıldı -->
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-6">
+          <!-- Avatar -->
+          <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-lg">
+            {% include 'forum/components/user_avatar.html' with user=profile_user image_url=image_url only %}
+          </div>
+          <!-- Kullanıcı Bilgileri -->
+          <div class="text-white">
+            <h1 class="text-2xl font-bold mb-1">{{ profile_user.username }}</h1>
+
+            {% if bio %}
+            <p class="text-white/90 text-sm mb-2">{{ bio }}</p>
+            {% endif %}
+
+            <!-- PROFİL DETAYLARI -->
+            <div class="flex flex-wrap gap-2 text-xs text-white/80">
+              <div class="flex items-center gap-1">
+                <i class="fas fa-calendar-alt"></i>
+                <span>{{ profile_user.date_joined|date:"d M Y" }} tarihinde katıldı</span>
+              </div>
+
+              {% if location %}
+              <div class="flex items-center gap-1">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ location }}</span>
+              </div>
+              {% endif %}
+
+              {% if website %}
+              <a href="{{ website }}" target="_blank" class="flex items-center gap-1 underline hover:text-white">
+                <i class="fas fa-globe"></i>
+                <span>Website</span>
+              </a>
+              {% endif %}
+
+              {% if twitter %}
+              <a href="https://twitter.com/{{ twitter|cut:'@' }}" target="_blank" class="flex items-center gap-1 underline hover:text-white">
+                <i class="fab fa-twitter"></i>
+                <span>@{{ twitter|cut:'@' }}</span>
+              </a>
+              {% endif %}
+
+              {% if linkedin %}
+              <a href="{{ linkedin }}" target="_blank" class="flex items-center gap-1 underline hover:text-white">
+                <i class="fab fa-linkedin"></i>
+                <span>LinkedIn</span>
+              </a>
+              {% endif %}
+            </div>
+
+            <!-- Stat Kutuları -->
+            <div class="flex flex-wrap gap-2 mt-3 text-xs">
+              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">☀️ {{ karma }} Karma</span>
+              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">💡 {{ topic_count }} Konu</span>
+              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">💬 {{ comment_count }} Yorum</span>
+              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">❤️ {{ like_count }} Beğeni</span>
+            </div>
+          </div>
+
+
+        <!-- Profili Düzenle Butonu -->
+        {% if request.user == profile_user %}
+        <a href="{% url 'accounts:profile_edit' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-xl font-medium transition-all duration-300 hover:scale-105 backdrop-blur-sm">
+          <i class="fas fa-edit"></i>
+          <span>Profili Düzenle</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Son Konular -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold mb-4"><i class="fas fa-comments mr-2"></i>Son Konular</h2>
+    {% for topic in recent_topics %}
+      {% include 'forum/components/topic_card.html' with topic=topic %}
+    {% empty %}
+      <p class="text-center text-slate-500 italic">Henüz konu bulunmuyor.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Son Yorumlar -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold mb-4"><i class="fas fa-comment-dots mr-2"></i>Son Yorumlar</h2>
+    {% for comment in recent_comments %}
+      {% include 'forum/components/comment_card.html' with comment=comment %}
+    {% empty %}
+      <p class="text-center text-slate-500 italic">Henüz yorum yapılmamış.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Beğenilen Konular -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold mb-4"><i class="fas fa-heart mr-2"></i>Beğenilen Konular</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      {% for topic in recent_liked_topics %}
+        {% include 'forum/components/topic_card.html' with topic=topic %}
+      {% empty %}
+        <p class="text-center text-slate-500 italic col-span-2">Henüz beğenilen konu yok.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+  <script src="{% static 'js/comments.js' %}"></script>
+{% endblock %}

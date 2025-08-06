@@ -26,9 +26,11 @@ schema_view = swagger_view(
 )
 
 urlpatterns = [
+    
     path('', include(router.urls)),
     path('tags/', TagListView.as_view(), name='tag-list'),
     path('schema/swagger-ui/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('swagger/', user_passes_test(lambda u: u.is_staff)(schema_view.with_ui('swagger', cache_timeout=0)), name='schema-swagger-ui'),
-    path('profile/<str:username>/', UserProfileView.as_view(), name='user-profile'),
+    path('profile/<str:user__username>/', UserProfileView.as_view(), name='user-profile'),
+
 ]

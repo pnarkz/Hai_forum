@@ -51,4 +51,4 @@ def label_with_icon(bound_field, icon):
     Kullanımı: {{ form.field|label_with_icon:"🔑" }}
     """
     label = bound_field.label or ''
-    return f'<label for="{bound_field.id_for_label}" class="font-semibold text-sm text-gray-700 flex items-center gap-2">{icon} {label}</label>'
+    return mark_safe(f'<label for="{bound_field.id_for_label}" class="font-semibold text-sm text-gray-700 flex items-center gap-2">{icon} {label}</label>')

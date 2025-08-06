@@ -1,11 +1,10 @@
-# accounts/models.py
 from django.contrib.auth.models import User
 from django.db import models
 from forum.models import Topic
-from taggit.models import Tag 
+from taggit.models import Tag
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='accounts_profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     location = models.CharField(max_length=100, blank=True)
@@ -18,3 +17,7 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    class Meta:
+        verbose_name = "User Profile"
+        verbose_name_plural = "User Profiles"

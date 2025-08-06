@@ -1,24 +1,49 @@
-# forum/models.py
 from django.db import models
 from django.contrib.auth.models import User
 from taggit.managers import TaggableManager
-from django.contrib.postgres.fields import JSONField
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.conf import settings
+from django.utils.text import slugify
+from django.urls import reverse
+
+# Ortak timestamp modeli
+class TimeStampedModel(models.Model):
+    date_created = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
+    slug = models.SlugField( blank=True)
     description = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('topics_by_category', args=[self.slug])
+
     def __str__(self):
         return self.name
 
-class Topic(models.Model):
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+
+
+
+class Topic(TimeStampedModel):
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="topics")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="topics")
-    date_created = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User, related_name='liked_topics', blank=True)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -26,26 +51,56 @@ class Topic(models.Model):
     image = models.ImageField(upload_to='topic_images/', null=True, blank=True)
     video = models.FileField(upload_to='topic_videos/', null=True, blank=True)
     views = models.PositiveIntegerField(default=0)
-    updated_at = models.DateTimeField(auto_now=True)
     favorited_by = models.ManyToManyField(User, related_name='favorited_topics', blank=True)
-    
+    slug = models.SlugField(unique=True, blank=True)
+    is_solved = models.BooleanField(default=False)
+    solved_at = models.DateTimeField(null=True, blank=True)
+
     def __str__(self):
         return self.title
 
-class Comment(models.Model):
-    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse("topic_detail", kwargs={"pk": self.pk})
+
+    class Meta:
+        ordering = ['-date_created']
+
+
+class Comment(TimeStampedModel):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="comments")
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
     content = models.TextField()
-    date_created = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User, related_name='liked_comments', blank=True)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     image = models.ImageField(upload_to='comment_images/', null=True, blank=True)
     video = models.FileField(upload_to='comment_videos/', null=True, blank=True)
+    
+    # Çözüm işaretleme için eklenen alan
+    is_solution = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.topic.title} - {self.author.username}"
+        return f"{self.author.username} on {self.topic.title}"
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse("topic_detail", kwargs={"slug": self.topic.slug})
+    
+    @property
+    def is_author_op(self):
+        """Yorum sahibinin topic sahibi olup olmadığını kontrol eder"""
+        return self.author == self.topic.author
+
+    class Meta:
+        ordering = ['date_created']
+
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
@@ -62,19 +117,24 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
     extra_data = models.JSONField(default=dict, blank=True)
-    
+
     def __str__(self):
         return f"{self.sender} → {self.recipient} ({self.notification_type})"
 
+    class Meta:
+        ordering = ['-timestamp']
 
 
 class ActivityLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    action = models.CharField(max_length=100)  # örn: "created_topic", "liked_comment"
+    action = models.CharField(max_length=100)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}: {self.action} @ {self.timestamp}"
 
     class Meta:
         ordering = ['-timestamp']

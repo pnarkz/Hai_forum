@@ -19,7 +19,7 @@
           box-shadow:0 4px 10px rgba(0,0,0,0.05);">
 
           <!-- Başlık -->
-          <a href="{% url 'topic_detail' topic.id %}" 
+          <a href="{% url 'topic_detail' topic.slug %}" 
              style="font-size:1.2rem; font-weight:600; color:#007BFF; text-decoration:none;">
             {{ topic.title }}
           </a>

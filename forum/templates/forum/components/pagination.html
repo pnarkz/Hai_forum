@@ -1,0 +1,57 @@
+{% if page_obj.has_other_pages %}
+  <div class="text-sm text-gray-600 mb-3 text-center">
+    <p>
+      <span class="font-medium">{{ page_obj.start_index }}</span>
+      ile
+      <span class="font-medium">{{ page_obj.end_index }}</span>
+      arası,
+      <span class="font-medium">{{ page_obj.paginator.count }}</span> sonuçtan
+    </p>
+  </div>
+
+  <nav class="flex flex-wrap justify-center items-center space-x-2 border-t border-slate-200 bg-white/90 backdrop-blur-sm px-6 py-4 rounded-lg card-shadow">
+
+    <!-- Önceki -->
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}"
+         class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
+        <i class="fas fa-chevron-left mr-1"></i> Önceki
+      </a>
+    {% else %}
+      <span class="px-3 py-1 rounded-md border border-slate-300 bg-slate-50 text-slate-400 cursor-not-allowed">
+        <i class="fas fa-chevron-left mr-1"></i> Önceki
+      </span>
+    {% endif %}
+
+    <!-- Sayfa Numaraları -->
+    {% for i in page_obj.paginator.page_range %}
+      {% if i == page_obj.number %}
+        <span class="px-3 py-1 rounded-md bg-blue-600 text-white font-semibold">{{ i }}</span>
+      {% elif i >= page_obj.number|add:'-2' and i <= page_obj.number|add:'2' %}
+        <a href="?page={{ i }}"
+           class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
+          {{ i }}
+        </a>
+      {% elif i == 1 or i == page_obj.paginator.num_pages %}
+        <a href="?page={{ i }}"
+           class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
+          {{ i }}
+        </a>
+      {% elif i == page_obj.number|add:'-3' or i == page_obj.number|add:'3' %}
+        <span class="px-2 text-slate-400">…</span>
+      {% endif %}
+    {% endfor %}
+
+    <!-- Sonraki -->
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}"
+         class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
+        Sonraki <i class="fas fa-chevron-right ml-1"></i>
+      </a>
+    {% else %}
+      <span class="px-3 py-1 rounded-md border border-slate-300 bg-slate-50 text-slate-400 cursor-not-allowed">
+        Sonraki <i class="fas fa-chevron-right ml-1"></i>
+      </span>
+    {% endif %}
+  </nav>
+{% endif %}

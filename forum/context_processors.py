@@ -1,6 +1,7 @@
 # forum/context_processors.py
 
 from .models import Notification
+from .models import Category
 
 def unread_notifications(request):
     if request.user.is_authenticated:
@@ -11,3 +12,8 @@ def unread_notifications(request):
             ).count()
         }
     return {}
+
+def all_categories(request):
+    return {
+        'categories': Category.objects.all()
+    }

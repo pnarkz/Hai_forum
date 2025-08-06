@@ -1,48 +1,36 @@
-# accounts/views.py
-
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
-from collections import Counter
-from accounts.utils import calculate_user_karma
-from forum.models import Topic, Comment
-from accounts.models import UserProfile
-from .forms import UserUpdateForm, ProfileUpdateForm
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
-from django.urls import reverse_lazy
-
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-from django.core.mail import send_mail
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from .forms import SignUpForm
-from forum.models import Notification
-
-from django.shortcuts import render
-from django.contrib.sites.shortcuts import get_current_site
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse_lazy
 from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
+from django.contrib import messages
+
+from .forms import SignUpForm, UserUpdateForm, ProfileUpdateForm
+from .utils import calculate_user_karma
+from .models import UserProfile
+from forum.models import Topic, Comment, Notification
+
+from collections import Counter
 
 
+# ✅ Kullanıcı kayıt işlemi ve aktivasyon maili
 def signup(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
-            # commit=False ile önce user örneğini alıp is_active=False yapıyoruz
             user = form.save(commit=False)
             user.is_active = False
             user.save()
 
             current_site = get_current_site(request)
-            # Burada kesinlikle 'uidb64' anahtarı ve value'su olmalı
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
 
@@ -50,21 +38,15 @@ def signup(request):
                 "user": user,
                 "domain": current_site.domain,
                 "protocol": "https" if request.is_secure() else "http",
-                "uidb64": uidb64,     # <-- işte burası
+                "uidb64": uidb64,
                 "token": token,
             }
 
             subject = "Hesabınızı Aktifleştirin"
-            from_email = None  # DEFAULT_FROM_EMAIL kullanılacak
+            text_body = render_to_string("registration/account_activation_email.txt", context)
+            html_body = render_to_string("registration/account_activation_email.html", context)
 
-            text_body = render_to_string(
-                "registration/account_activation_email.txt", context
-            )
-            html_body = render_to_string(
-                "registration/account_activation_email.html", context
-            )
-
-            msg = EmailMultiAlternatives(subject, text_body, from_email, [user.email])
+            msg = EmailMultiAlternatives(subject, text_body, None, [user.email])
             msg.attach_alternative(html_body, "text/html")
             msg.send()
 
@@ -73,7 +55,6 @@ def signup(request):
         form = SignUpForm()
 
     return render(request, "registration/signup.html", {"form": form})
-
 
 
 def activate(request, uidb64, token):
@@ -92,7 +73,7 @@ def activate(request, uidb64, token):
         return render(request, "registration/account_activation_invalid.html")
 
 
-
+# ✅ Giriş ve çıkış
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -104,10 +85,13 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
 
+
 def logout_view(request):
     logout(request)
     return redirect('accounts:login')
 
+
+# ✅ Profil görüntüleme
 @login_required
 def my_profile_view(request):
     return redirect('accounts:user_profile', username=request.user.username)
@@ -117,32 +101,30 @@ def my_profile_view(request):
 def user_profile_view(request, username):
     user = get_object_or_404(User, username=username)
     profile, _ = UserProfile.objects.get_or_create(user=user)
-    #unread_count = Notification.objects.filter(recipient=user, is_read=False).count()
-    profile_owner_unread_count = Notification.objects.filter(recipient=user, is_read=False).count()
-    
+
     topics = Topic.objects.filter(author=user, is_deleted=False)
     comments = Comment.objects.filter(author=user, is_deleted=False)
     liked_topics = user.liked_topics.filter(is_deleted=False)
 
-    recent_topics = topics.order_by('-date_created')[:5]
-    recent_comments = comments.order_by('-date_created')[:5]
-    recent_liked_topics = liked_topics.order_by('-date_created')[:5]
+    def get_recent(queryset, limit=5):
+        return queryset.order_by('-date_created')[:limit]
 
-    tag_counter = Counter()
-    for t in topics:
-        for tag in t.tags.names():
-            tag_counter[tag] += 1
-    most_common_tags = tag_counter.most_common(5)
+    def get_common_tags(queryset):
+        tag_counter = Counter()
+        for t in queryset:
+            for tag in t.tags.names():
+                tag_counter[tag] += 1
+        return tag_counter.most_common(5)
 
-    # Burada profile_picture varsa .url okut, yoksa None ata
-    if profile.profile_picture and profile.profile_picture.name:
-        image_url = profile.profile_picture.url
-    else:
-        image_url = None
+    image_url = profile.profile_picture.url if profile.profile_picture and profile.profile_picture.name else None
 
-    return render(request, 'forum/profile.html', {
+    context = {
         'profile_user': user,
         'bio': profile.bio,
+        'website': profile.website,
+        'twitter': profile.twitter,
+        'linkedin': profile.linkedin,
+        'location': profile.location,
         'image_url': image_url,
         'karma': calculate_user_karma(user),
         'topics': topics,
@@ -152,23 +134,21 @@ def user_profile_view(request, username):
         'comment_count': comments.count(),
         'like_count': liked_topics.count(),
         'last_login': user.last_login,
-        'most_common_tags': most_common_tags,
-        'recent_topics': recent_topics,
-        'recent_comments': recent_comments,
-        'recent_liked_topics': recent_liked_topics,
-        #'unread_count': unread_count,
-        'profile_owner_unread_count': profile_owner_unread_count,
-    })
+        'recent_topics': get_recent(topics),
+        'recent_comments': get_recent(comments),
+        'recent_liked_topics': get_recent(liked_topics),
+        'most_common_tags': get_common_tags(topics),
+        'profile_owner_unread_count': Notification.objects.filter(recipient=user, is_read=False).count(),
+    }
+
+    return render(request, 'accounts/profile.html', context)
 
 
-@login_required
-def leaderboard_view(request):
-    profiles = UserProfile.objects.select_related('user')
-    leaderboard = sorted(profiles, key=lambda p: p.karma, reverse=True)
-    return render(request, 'accounts/leaderboard.html', {
-        'leaderboard': leaderboard
-    })
+    return render(request, 'accounts/profile.html', context)
 
+
+
+# ✅ Profil düzenleme
 @login_required
 def profile_edit(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -185,11 +165,7 @@ def profile_edit(request):
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=profile)
 
-    # Güvenli profil resmi URL’si
-    if profile.profile_picture and profile.profile_picture.name:
-        profile_picture_url = profile.profile_picture.url
-    else:
-        profile_picture_url = None
+    profile_picture_url = profile.profile_picture.url if profile.profile_picture and profile.profile_picture.name else None
 
     return render(request, 'accounts/profile_edit.html', {
         'u_form': u_form,
@@ -198,19 +174,24 @@ def profile_edit(request):
     })
 
 
+# ✅ Lider tablosu
+@login_required
+def leaderboard_view(request):
+    profiles = UserProfile.objects.select_related('user')
+    leaderboard = sorted(profiles, key=lambda p: p.karma, reverse=True)
+    return render(request, 'accounts/leaderboard.html', {'leaderboard': leaderboard})
+
+
+# ✅ Şifre değiştirme
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'accounts/password_change.html'
     success_url = reverse_lazy('accounts:my_profile')
 
+
+# ✅ Kullanıcı paneli
 @login_required
 def dashboard_view(request):
     user = request.user
     topics = Topic.objects.filter(author=user, is_deleted=False).order_by('-date_created')[:5]
     comments = Comment.objects.filter(author=user, is_deleted=False).order_by('-date_created')[:5]
-
-    context = {
-        'topics': topics,
-        'comments': comments,
-    }
-    return render(request, 'accounts/dashboard.html', context)
-
+    return render(request, 'accounts/dashboard.html', {'topics': topics, 'comments': comments})

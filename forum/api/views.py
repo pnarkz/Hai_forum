@@ -1,16 +1,23 @@
+from django.utils import timezone
+from django.db.models import Count, Q
+from django.contrib.auth.models import User
+from accounts.models import UserProfile
 from rest_framework import viewsets, permissions, generics, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.utils import timezone
-from django.db.models import Count, Q
-from rest_framework.serializers import ModelSerializer
-from taggit.models import Tag
-from django_filters.rest_framework import DjangoFilterBackend
-from django.contrib.auth.models import User
-from forum.models import Topic, Comment, Category, Notification
-from .serializers import TopicSerializer, CommentSerializer, CategorySerializer, NotificationSerializer, UserProfileSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.serializers import ModelSerializer
+from django_filters.rest_framework import DjangoFilterBackend
 
+from taggit.models import Tag
+from forum.models import Topic, Comment, Category, Notification
+from .serializers import (
+    TopicSerializer, CommentSerializer, CategorySerializer,
+    NotificationSerializer, UserProfileSerializer
+)
+
+
+# ✅ Topic ViewSet
 class TopicViewSet(viewsets.ModelViewSet):
     queryset = Topic.objects.filter(is_deleted=False).order_by('-date_created')
     serializer_class = TopicSerializer
@@ -23,17 +30,13 @@ class TopicViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         topic = serializer.save(author=self.request.user.username)
-
         Notification.objects.create(
-            recipient=self.request.user,  # ya da başka birine yönlendireceksen değiştir
+            recipient=self.request.user,
             sender=self.request.user,
             topic=topic,
-            notification_type='comment',  # ya da topic tipini eklersen 'topic'
-            extra_data={
-                'topic_title': topic.title,
-            }
+            notification_type='comment',
+            extra_data={'topic_title': topic.title}
         )
-
 
     def perform_destroy(self, instance):
         instance.is_deleted = True
@@ -52,16 +55,13 @@ class TopicViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_topics(self, request):
-        user = request.user
-        user_topics = Topic.objects.filter(author=user, is_deleted=False).order_by('-date_created')
-        serializer = self.get_serializer(user_topics, many=True)
-        return Response(serializer.data)
+        topics = Topic.objects.filter(author=request.user, is_deleted=False).order_by('-date_created')
+        return Response(self.get_serializer(topics, many=True).data)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
     def deleted(self, request):
-        deleted_items = Topic.objects.filter(is_deleted=True).order_by('-deleted_at')
-        serializer = self.get_serializer(deleted_items, many=True)
-        return Response(serializer.data)
+        topics = Topic.objects.filter(is_deleted=True).order_by('-deleted_at')
+        return Response(self.get_serializer(topics, many=True).data)
 
     @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAdminUser])
     def restore(self, request, pk=None):
@@ -75,7 +75,6 @@ class TopicViewSet(viewsets.ModelViewSet):
     def like(self, request, pk=None):
         topic = self.get_object()
         user = request.user
-
         topic.likes.add(user)
 
         if topic.author != user.username:
@@ -84,13 +83,10 @@ class TopicViewSet(viewsets.ModelViewSet):
                 sender=user,
                 topic=topic,
                 notification_type='like',
-                extra_data={
-                    'topic_title': topic.title
-                }
+                extra_data={'topic_title': topic.title}
             )
 
         return Response({'liked': True, 'likes_count': topic.likes.count()})
-
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def unlike(self, request, pk=None):
@@ -98,13 +94,13 @@ class TopicViewSet(viewsets.ModelViewSet):
         topic.likes.remove(request.user)
         return Response({'liked': False, 'likes_count': topic.likes.count()})
 
-
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def liked(self, request):
-        liked_topics = Topic.objects.filter(likes=request.user, is_deleted=False)
-        serializer = self.get_serializer(liked_topics, many=True)
-        return Response(serializer.data)
+        topics = Topic.objects.filter(likes=request.user, is_deleted=False)
+        return Response(self.get_serializer(topics, many=True).data)
 
+
+# ✅ Comment ViewSet
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.filter(is_deleted=False).order_by('-date_created')
     serializer_class = CommentSerializer
@@ -132,8 +128,6 @@ class CommentViewSet(viewsets.ModelViewSet):
                 }
             )
 
-
-
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.deleted_at = timezone.now()
@@ -147,9 +141,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
     def deleted(self, request):
-        deleted_items = Comment.objects.filter(is_deleted=True).order_by('-deleted_at')
-        serializer = self.get_serializer(deleted_items, many=True)
-        return Response(serializer.data)
+        comments = Comment.objects.filter(is_deleted=True).order_by('-deleted_at')
+        return Response(self.get_serializer(comments, many=True).data)
 
     @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAdminUser])
     def restore(self, request, pk=None):
@@ -159,11 +152,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         comment.save()
         return Response({'status': 'restored'})
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def like(self, request, pk=None):
         comment = self.get_object()
         user = request.user
-
         comment.likes.add(user)
 
         if comment.author != user.username:
@@ -178,22 +170,22 @@ class CommentViewSet(viewsets.ModelViewSet):
                     'comment_excerpt': comment.content[:100]
                 }
             )
+
         return Response({'liked': True, 'likes_count': comment.likes.count()})
 
-
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def unlike(self, request, pk=None):
         comment = self.get_object()
         comment.likes.remove(request.user)
         return Response({'liked': False, 'likes_count': comment.likes.count()})
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def liked(self, request):
-        liked_comments = Comment.objects.filter(likes=request.user, is_deleted=False)
-        serializer = self.get_serializer(liked_comments, many=True)
-        return Response(serializer.data)
+        comments = Comment.objects.filter(likes=request.user, is_deleted=False)
+        return Response(self.get_serializer(comments, many=True).data)
 
 
+# ✅ Kategori ViewSet
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.annotate(
         topic_count=Count('topics', filter=Q(topics__is_deleted=False))
@@ -201,6 +193,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
 
 
+# ✅ Tag Listeleme
 class TagSerializer(ModelSerializer):
     class Meta:
         model = Tag
@@ -213,12 +206,11 @@ class TagListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
 
+# ✅ Bildirimler
 class NotificationViewSet(viewsets.ModelViewSet):
-    queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    # 🔍 Arama ve sıralama desteği
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['is_read']
     search_fields = ['message']
@@ -236,6 +228,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
 
 class UserProfileView(generics.RetrieveAPIView):
-    queryset = User.objects.all()
+    queryset = UserProfile.objects.select_related('user').all()
     serializer_class = UserProfileSerializer
-    lookup_field = 'username' 
+    lookup_field = 'user__username'
+    permission_classes = [permissions.AllowAny]

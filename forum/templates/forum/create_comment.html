@@ -10,7 +10,7 @@
         <i class="fas fa-comment-alt mr-3 text-secondary-600"></i>
         Yeni Yorum
       </h1>
-      <a href="{% url 'topic_detail' topic.id %}" class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
+      <a href="{% url 'topic_detail' topic.slug %}" class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
         <i class="fas fa-arrow-left mr-2"></i>
         Konuya Dön
       </a>
@@ -47,7 +47,7 @@
   {% endif %}
 
   <!-- Comment Form -->
-  <form method="post" action="{% url 'create_comment' topic.id %}" enctype="multipart/form-data" class="space-y-6" id="commentForm">
+  <form method="post" action="{% url 'create_comment' topic.slug %}" enctype="multipart/form-data" class="space-y-6" id="commentForm">
     {% csrf_token %}
     
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -138,7 +138,7 @@
               <i class="fas fa-paper-plane mr-2"></i>
               <span id="submitText">Yorumu Gönder</span>
             </button>
-            <a href="{% url 'topic_detail' topic.id %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
+            <a href="{% url 'topic_detail' topic.slug %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
               <i class="fas fa-times mr-2"></i>
               İptal Et
             </a>

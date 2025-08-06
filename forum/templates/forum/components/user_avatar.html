@@ -1,0 +1,25 @@
+{% comment %}
+User Avatar Component
+Usage: {% include 'components/user_avatar.html' with user=user image_url=image_url %}
+Props: user (required), image_url (optional override for profile_picture)
+{% endcomment %}
+
+<a href="{% url 'accounts:user_profile' user.username %}" class="flex items-center space-x-2 group">
+  {% if image_url or user.userprofile.profile_picture %}
+    <img src="{% if image_url %}
+                {{ image_url }}
+              {% else %}
+                {{ user.userprofile.profile_picture.url }}
+              {% endif %}"
+         alt="{{ user.username }}"
+         class="w-8 h-8 rounded-full object-cover border border-slate-300 shadow-sm group-hover:brightness-95 transition-all duration-150"
+         loading="lazy">
+  {% else %}
+    <!-- Baş harfli avatar -->
+    <div class="w-8 h-8 rounded-full bg-blue-200 text-blue-800 font-semibold text-sm flex items-center justify-center border border-slate-300 shadow-sm">
+      {{ user.username|first|upper }}
+    </div>
+  {% endif %}
+
+  <span class="text-slate-700 font-medium group-hover:underline">{{ user.username }}</span>
+</a>

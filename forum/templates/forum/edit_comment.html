@@ -11,7 +11,7 @@
         <i class="fas fa-edit mr-3 text-primary-600"></i>
         Yorumu Düzenle
       </h1>
-      <a href="{% url 'topic_detail' comment.topic.id %}" class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
+      <a href="{% url 'topic_detail' comment.topic.slug %}" class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
         <i class="fas fa-arrow-left mr-2"></i>
         Konuya Dön
       </a>
@@ -194,7 +194,7 @@
               <i class="fas fa-save mr-2"></i>
               <span id="submitText">Değişiklikleri Kaydet</span>
             </button>
-            <a href="{% url 'topic_detail' comment.topic.id %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
+            <a href="{% url 'topic_detail' comment.topic.slug %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
               <i class="fas fa-times mr-2"></i>
               İptal Et
             </a>

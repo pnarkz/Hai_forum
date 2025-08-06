@@ -12,7 +12,9 @@
         <i class="fas fa-edit mr-3 text-primary-600"></i>
         Konu Düzenle
       </h1>
-      <a href="{% url 'topic_detail' topic.id %}" class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
+      <!-- topic.id yerine topic.slug -->
+      <a href="{% url 'topic_detail' topic.slug %}"
+         class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
         <i class="fas fa-arrow-left mr-2"></i>
         Konuya Dön
       </a>
@@ -212,11 +214,15 @@
         <!-- Actions -->
         <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
           <div class="space-y-3">
-            <button type="submit" class="w-full gradient-bg text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center" id="submitBtn">
+            <button type="submit"
+                    class="w-full gradient-bg text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+                    id="submitBtn">
               <i class="fas fa-save mr-2"></i>
               <span id="submitText">Değişiklikleri Kaydet</span>
             </button>
-            <a href="{% url 'topic_detail' topic.id %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
+            <!-- topic.id yerine topic.slug -->
+            <a href="{% url 'topic_detail' topic.slug %}"
+               class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
               <i class="fas fa-times mr-2"></i>
               İptal Et
             </a>

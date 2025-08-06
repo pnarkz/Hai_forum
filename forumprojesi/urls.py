@@ -1,10 +1,6 @@
-
-#forumprojesi\urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
-from rest_framework.permissions import IsAdminUser
-# Swagger
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -25,19 +21,14 @@ schema_view = get_schema_view(
 
 urlpatterns = [
    path('admin/', admin.site.urls),
-   path('', include('forum.urls')),  # Forum uygulaması ana sayfa
-   # project/urls.py
    path('accounts/', include(('accounts.urls', 'accounts'), namespace='accounts')),
-   path('api/', include('forum.api.urls')),  # API endpointleri
+   path('', include('forum.urls')),  # Ana sayfa dahil tüm forum işlemleri burada
+   path('api/', include('forum.api.urls')),
    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    
-   # Swagger Dokümantasyonu
+
+   # Swagger (sadece staff erişebilir)
    path('swagger/', user_passes_test(lambda u: u.is_staff)(schema_view.with_ui('swagger', cache_timeout=0)), name='schema-swagger-ui'),
    path('redoc/', user_passes_test(lambda u: u.is_staff)(schema_view.with_ui('redoc', cache_timeout=0)), name='schema-redoc'),
-
-   # Ana sayfa yönlendirmesi
-   path('', RedirectView.as_view(url='/topics/', permanent=False)),
-   
 ]
 
 if settings.DEBUG:

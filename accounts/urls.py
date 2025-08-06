@@ -1,5 +1,3 @@
-# accounts/urls.py
-
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from .views import (
@@ -13,29 +11,32 @@ from .views import (
     signup,
     activate,
     dashboard_view,
-) 
+)
 
 app_name = 'accounts'
 
 urlpatterns = [
-    # Profil & oturum
-    path('profile/edit/', profile_edit, name='profile_edit'),
-    path('profile/', my_profile_view, name='my_profile'),
-    path('profile/<str:username>/', user_profile_view, name='user_profile'),
-    path('leaderboard/', leaderboard_view, name='leaderboard'),
-    path('dashboard/', dashboard_view, name='dashboard'),
-    # Kayıt ve aktivasyon
-    path('signup/', signup, name='signup'),
-    path('activate/<uidb64>/<token>/', activate, name='activate'),
-
-    # Giriş/Çıkış
+    # 🔐 Giriş / Çıkış
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
 
-    # Şifre değiştirme (login olduktan sonra)
+    # 👤 Profil işlemleri
+    path('profile/', my_profile_view, name='my_profile'),
+    path('profile/edit/', profile_edit, name='profile_edit'),
+    path('profile/<str:username>/', user_profile_view, name='user_profile'),
+
+    # 🏆 Kullanıcı sıralamaları ve kontrol paneli
+    path('leaderboard/', leaderboard_view, name='leaderboard'),
+    path('dashboard/', dashboard_view, name='dashboard'),
+
+    # 📨 Kayıt ve aktivasyon
+    path('signup/', signup, name='signup'),
+    path('activate/<uidb64>/<token>/', activate, name='activate'),
+
+    # 🔒 Şifre değiştirme (login sonrası)
     path('password/change/', CustomPasswordChangeView.as_view(), name='password_change'),
 
-    # Şifre sıfırlama akışı
+    # 🔁 Şifre sıfırlama akışı (reset linki ile)
     path(
         'password-reset/',
         auth_views.PasswordResetView.as_view(

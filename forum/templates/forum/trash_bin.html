@@ -20,7 +20,7 @@
               <strong>{{ topic.title }}</strong><br>
               <small style="color:#888;">🗓️ Deleted at {{ topic.deleted_at|date:"Y-m-d H:i" }}</small>
             </div>
-            <form method="post" action="{% url 'restore_topic' topic.id %}" style="margin:0;">
+            <form method="post" action="{% url 'restore_topic' topic.slug %}" style="margin:0;">
               {% csrf_token %}
               <button type="submit"
                       style="background:#2e7d32; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:500; cursor:pointer;">

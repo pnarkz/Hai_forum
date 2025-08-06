@@ -1,6 +1,6 @@
-# forum/forms.py
 from django import forms
 from .models import Topic, Comment
+
 
 class TopicForm(forms.ModelForm):
     class Meta:
@@ -28,6 +28,7 @@ class TopicForm(forms.ModelForm):
                 'accept': 'video/*'
             }),
         }
+
 
 class CommentForm(forms.ModelForm):
     class Meta:

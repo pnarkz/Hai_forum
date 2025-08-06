@@ -1,0 +1,466 @@
+{% comment %}
+Message List Component
+Usage: {% include 'components/message_list.html' with messages=messages %}
+Props: messages (required), show_actions (optional, default: true)
+{% endcomment %}
+
+<div class="message-list space-y-4">
+  {% for message in messages %}
+    <div class="message-item bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200 card-shadow hover:shadow-md transition-all duration-300 
+                {% if not message.is_read %}border-l-4 border-l-blue-500 bg-blue-50/30{% endif %}"
+         id="message-{{ message.id }}">
+      
+      <!-- Message Header -->
+      <div class="flex items-center justify-between p-4 border-b border-slate-100">
+        <div class="flex items-center space-x-3">
+          <!-- Sender Avatar -->
+          <div class="w-10 h-10 rounded-full gradient-bg text-white flex items-center justify-center font-semibold shadow-md">
+            {% if message.sender %}
+              {{ message.sender.username|first|upper }}
+            {% else %}
+              <i class="fas fa-bell"></i>
+            {% endif %}
+          </div>
+          
+          <!-- Message Info -->
+          <div>
+            <div class="flex items-center space-x-2">
+              <h4 class="font-semibold text-slate-800 {% if not message.is_read %}text-blue-800{% endif %}">
+                {% if message.sender %}
+                  {{ message.sender.username }}
+                {% else %}
+                  Sistem
+                {% endif %}
+              </h4>
+              
+              <!-- Message Type Badge -->
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                           {% if message.message_type == 'mention' %}bg-purple-100 text-purple-700{% endif %}
+                           {% if message.message_type == 'reply' %}bg-blue-100 text-blue-700{% endif %}
+                           {% if message.message_type == 'like' %}bg-rose-100 text-rose-700{% endif %}
+                           {% if message.message_type == 'system' %}bg-slate-100 text-slate-700{% endif %}
+                           {% if message.message_type == 'follow' %}bg-green-100 text-green-700{% endif %}">
+                
+                {% if message.message_type == 'mention' %}
+                  <i class="fas fa-at mr-1"></i> Bahsetme
+                {% elif message.message_type == 'reply' %}
+                  <i class="fas fa-reply mr-1"></i> Yanıt
+                {% elif message.message_type == 'like' %}
+                  <i class="fas fa-heart mr-1"></i> Beğeni
+                {% elif message.message_type == 'system' %}
+                  <i class="fas fa-cog mr-1"></i> Sistem
+                {% elif message.message_type == 'follow' %}
+                  <i class="fas fa-user-plus mr-1"></i> Takip
+                {% else %}
+                  <i class="fas fa-envelope mr-1"></i> Mesaj
+                {% endif %}
+              </span>
+              
+              {% if message.priority == 'high' %}
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                  <i class="fas fa-exclamation mr-1"></i> Önemli
+                </span>
+              {% endif %}
+            </div>
+            
+            <div class="flex items-center space-x-2 text-sm text-slate-500 mt-1">
+              <i class="far fa-clock text-xs"></i>
+              <span>{{ message.created_at|timesince }} önce</span>
+              
+              {% if not message.is_read %}
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+                  <i class="fas fa-circle mr-1 text-xs"></i>
+                  Yeni
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Message Actions -->
+        {% if show_actions|default:True %}
+          <div class="flex items-center space-x-2">
+            {% if not message.is_read %}
+              <button onclick="markAsRead({{ message.id }})" 
+                      class="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors"
+                      title="Okundu olarak işaretle">
+                <i class="fas fa-check"></i>
+              </button>
+            {% endif %}
+            
+            <button onclick="toggleMessageActions({{ message.id }})" 
+                    class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div id="messageActions-{{ message.id }}" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-10 hidden">
+              {% if message.is_read %}
+                <button onclick="markAsUnread({{ message.id }})" class="w-full flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                  <i class="fas fa-envelope mr-3"></i>
+                  Okunmadı Olarak İşaretle
+                </button>
+              {% endif %}
+              
+              <button onclick="deleteMessage({{ message.id }})" class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                <i class="fas fa-trash mr-3"></i>
+                Sil
+              </button>
+              
+              {% if message.related_object %}
+                <hr class="my-2">
+                <a href="{{ message.get_absolute_url }}" class="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50">
+                  <i class="fas fa-external-link-alt mr-3"></i>
+                  İlgili Sayfaya Git
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Message Content -->
+      <div class="p-4">
+        <div class="flex items-start space-x-4">
+          <!-- Message Text -->
+          <div class="flex-1">
+            <p class="text-slate-700 mb-3 {% if not message.is_read %}font-medium{% endif %}">
+              {{ message.content }}
+            </p>
+            
+            <!-- Related Content Preview -->
+            {% if message.related_object %}
+              <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div class="flex items-center space-x-2 mb-2">
+                  <i class="fas 
+                     {% if message.content_type.model == 'topic' %}fa-comments
+                     {% elif message.content_type.model == 'comment' %}fa-comment
+                     {% else %}fa-link{% endif %} text-slate-500"></i>
+                  <span class="text-sm font-medium text-slate-700">
+                    {% if message.content_type.model == 'topic' %}
+                      Konu: {{ message.related_object.title }}
+                    {% elif message.content_type.model == 'comment' %}
+                      Yorum: {{ message.related_object.topic.title }}
+                    {% else %}
+                      {{ message.content_type.model|capfirst }}
+                    {% endif %}
+                  </span>
+                </div>
+                
+                {% if message.related_object.content %}
+                  <p class="text-sm text-slate-600 line-clamp-2">
+                    {{ message.related_object.content|truncatewords:20 }}
+                  </p>
+                {% endif %}
+                
+                {% if message.get_absolute_url %}
+                  <a href="{{ message.get_absolute_url }}" 
+                     class="inline-flex items-center mt-2 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                    <span>Görüntüle</span>
+                    <i class="fas fa-arrow-right ml-1"></i>
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+          
+          <!-- Message Thumbnail/Icon -->
+          {% if message.thumbnail %}
+            <div class="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+              <img src="{{ message.thumbnail.url }}" alt="" class="w-full h-full object-cover">
+            </div>
+          {% elif message.message_type %}
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0
+                        {% if message.message_type == 'mention' %}bg-purple-100 text-purple-600{% endif %}
+                        {% if message.message_type == 'reply' %}bg-blue-100 text-blue-600{% endif %}
+                        {% if message.message_type == 'like' %}bg-rose-100 text-rose-600{% endif %}
+                        {% if message.message_type == 'system' %}bg-slate-100 text-slate-600{% endif %}
+                        {% if message.message_type == 'follow' %}bg-green-100 text-green-600{% endif %}">
+              
+              {% if message.message_type == 'mention' %}
+                <i class="fas fa-at text-lg"></i>
+              {% elif message.message_type == 'reply' %}
+                <i class="fas fa-reply text-lg"></i>
+              {% elif message.message_type == 'like' %}
+                <i class="fas fa-heart text-lg"></i>
+              {% elif message.message_type == 'system' %}
+                <i class="fas fa-cog text-lg"></i>
+              {% elif message.message_type == 'follow' %}
+                <i class="fas fa-user-plus text-lg"></i>
+              {% else %}
+                <i class="fas fa-envelope text-lg"></i>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Message Footer -->
+      {% if message.actions_available %}
+        <div class="px-4 pb-4">
+          <div class="flex items-center space-x-3">
+            {% if message.can_reply %}
+              <button onclick="replyToMessage({{ message.id }})" 
+                      class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                <i class="fas fa-reply mr-2"></i>
+                Yanıtla
+              </button>
+            {% endif %}
+            
+            {% if message.can_archive %}
+              <button onclick="archiveMessage({{ message.id }})" 
+                      class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">
+                <i class="fas fa-archive mr-2"></i>
+                Arşivle
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% empty %}
+    <!-- Empty State -->
+    <div class="text-center py-12">
+      <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+        <i class="fas fa-inbox text-3xl text-slate-400"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-slate-800 mb-2">Mesaj bulunamadı</h3>
+      <p class="text-slate-600">Henüz hiç mesajınız yok.</p>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Bulk Actions (Optional) -->
+{% if messages and show_actions|default:True %}
+  <div class="mt-6 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200 p-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" 
+               class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+        <label for="selectAll" class="text-sm font-medium text-slate-700">Tümünü Seç</label>
+        
+        <span id="selectedCount" class="text-sm text-slate-500">0 mesaj seçildi</span>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <button onclick="bulkMarkAsRead()" 
+                class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                id="bulkReadBtn" disabled>
+          <i class="fas fa-check mr-2"></i>
+          Okundu İşaretle
+        </button>
+        
+        <button onclick="bulkDelete()" 
+                class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                id="bulkDeleteBtn" disabled>
+          <i class="fas fa-trash mr-2"></i>
+          Sil
+        </button>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<script>
+// Message Actions
+function markAsRead(messageId) {
+  fetch(`/api/messages/${messageId}/read/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const messageEl = document.getElementById(`message-${messageId}`);
+      messageEl.classList.remove('border-l-4', 'border-l-blue-500', 'bg-blue-50/30');
+      messageEl.querySelector('.fa-circle')?.remove();
+      location.reload(); // Or update dynamically
+    }
+  });
+}
+
+function markAsUnread(messageId) {
+  fetch(`/api/messages/${messageId}/unread/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    }
+  });
+}
+
+function deleteMessage(messageId) {
+  if (confirm('Bu mesajı silmek istediğinizden emin misiniz?')) {
+    fetch(`/api/messages/${messageId}/delete/`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById(`message-${messageId}`).remove();
+      }
+    });
+  }
+}
+
+function archiveMessage(messageId) {
+  fetch(`/api/messages/${messageId}/archive/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById(`message-${messageId}`).remove();
+    }
+  });
+}
+
+function toggleMessageActions(messageId) {
+  const menu = document.getElementById(`messageActions-${messageId}`);
+  menu.classList.toggle('hidden');
+  
+  // Close menu when clicking outside
+  document.addEventListener('click', function closeMenu(e) {
+    if (!menu.contains(e.target) && !e.target.closest('.fa-ellipsis-v')) {
+      menu.classList.add('hidden');
+      document.removeEventListener('click', closeMenu);
+    }
+  });
+}
+
+function replyToMessage(messageId) {
+  // Implementation depends on your reply system
+  window.location.href = `/messages/reply/${messageId}/`;
+}
+
+// Bulk Actions
+let selectedMessages = new Set();
+
+function toggleSelectAll() {
+  const selectAll = document.getElementById('selectAll');
+  const checkboxes = document.querySelectorAll('.message-checkbox');
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = selectAll.checked;
+    if (selectAll.checked) {
+      selectedMessages.add(parseInt(checkbox.value));
+    } else {
+      selectedMessages.clear();
+    }
+  });
+  
+  updateBulkActions();
+}
+
+function toggleMessageSelect(messageId) {
+  if (selectedMessages.has(messageId)) {
+    selectedMessages.delete(messageId);
+  } else {
+    selectedMessages.add(messageId);
+  }
+  
+  updateBulkActions();
+}
+
+function updateBulkActions() {
+  const count = selectedMessages.size;
+  document.getElementById('selectedCount').textContent = `${count} mesaj seçildi`;
+  
+  const bulkReadBtn = document.getElementById('bulkReadBtn');
+  const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+  
+  if (bulkReadBtn) bulkReadBtn.disabled = count === 0;
+  if (bulkDeleteBtn) bulkDeleteBtn.disabled = count === 0;
+}
+
+function bulkMarkAsRead() {
+  if (selectedMessages.size === 0) return;
+  
+  fetch('/api/messages/bulk-read/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message_ids: Array.from(selectedMessages)
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    }
+  });
+}
+
+function bulkDelete() {
+  if (selectedMessages.size === 0) return;
+  
+  if (confirm(`${selectedMessages.size} mesajı silmek istediğinizden emin misiniz?`)) {
+    fetch('/api/messages/bulk-delete/', {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message_ids: Array.from(selectedMessages)
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      }
+    });
+  }
+}
+
+// Add checkboxes to messages dynamically
+document.addEventListener('DOMContentLoaded', function() {
+  const messages = document.querySelectorAll('.message-item');
+  messages.forEach(message => {
+    const messageId = parseInt(message.id.replace('message-', ''));
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'message-checkbox w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500';
+    checkbox.value = messageId;
+    checkbox.onchange = () => toggleMessageSelect(messageId);
+    
+    const header = message.querySelector('.flex.items-center.justify-between');
+    if (header) {
+      const checkboxContainer = document.createElement('div');
+      checkboxContainer.className = 'flex items-center mr-3';
+      checkboxContainer.appendChild(checkbox);
+      header.querySelector('.flex.items-center.space-x-3').prepend(checkboxContainer);
+    }
+  });
+});
+</script>
+
+<style>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

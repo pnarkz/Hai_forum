@@ -1,0 +1,445 @@
+{% comment %}
+Modal Component
+Usage: {% include 'components/modal.html' with modal_id='myModal' title='Modal Title' %}
+Props: 
+  - modal_id (required): Unique ID for the modal
+  - title (optional): Modal title
+  - size (optional): 'sm', 'md', 'lg', 'xl', 'full' (default: 'md')
+  - closable (optional): Show close button (default: true)
+  - backdrop_closable (optional): Close on backdrop click (default: true)
+{% endcomment %}
+
+<div id="{{ modal_id }}" 
+     class="fixed inset-0 z-50 overflow-y-auto hidden" 
+     aria-labelledby="{{ modal_id }}-title" 
+     role="dialog" 
+     aria-modal="true">
+  
+  <!-- Backdrop -->
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-slate-900 bg-opacity-75 backdrop-blur-sm transition-opacity" 
+         aria-hidden="true"
+         onclick="{% if backdrop_closable|default:True %}closeModal('{{ modal_id }}'){% endif %}"></div>
+
+    <!-- This element is to trick the browser into centering the modal contents. -->
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+    <!-- Modal Content -->
+    <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle 
+                {% if size == 'sm' %}sm:max-w-sm sm:w-full
+                {% elif size == 'lg' %}sm:max-w-4xl sm:w-full
+                {% elif size == 'xl' %}sm:max-w-6xl sm:w-full
+                {% elif size == 'full' %}sm:max-w-none sm:w-screen sm:h-screen sm:rounded-none
+                {% else %}sm:max-w-lg sm:w-full{% endif %}">
+      
+      <!-- Modal Header -->
+      {% if title or closable|default:True %}
+        <div class="bg-white px-6 py-4 border-b border-slate-200">
+          <div class="flex items-center justify-between">
+            {% if title %}
+              <h3 class="text-lg font-semibold text-slate-900" id="{{ modal_id }}-title">
+                {{ title }}
+              </h3>
+            {% endif %}
+            
+            {% if closable|default:True %}
+              <button type="button" 
+                      class="ml-auto bg-white rounded-md text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                      onclick="closeModal('{{ modal_id }}')">
+                <span class="sr-only">Kapat</span>
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Modal Body -->
+      <div class="bg-white px-6 py-4 {% if size == 'full' %}flex-1 overflow-y-auto{% endif %}">
+        <div id="{{ modal_id }}-content">
+          <!-- Modal content will be inserted here -->
+          {% block modal_content %}
+            <p class="text-slate-600">Modal içeriği buraya gelecek.</p>
+          {% endblock %}
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-4 border-t border-slate-200">
+        <div class="flex items-center justify-end space-x-3" id="{{ modal_id }}-footer">
+          {% block modal_footer %}
+            <button type="button" 
+                    class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                    onclick="closeModal('{{ modal_id }}')">
+              İptal
+            </button>
+            <button type="button" 
+                    class="px-4 py-2 text-sm font-medium text-white gradient-bg rounded-lg hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+              Tamam
+            </button>
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Modal Variant -->
+<div id="{{ modal_id }}-loading" class="fixed inset-0 z-50 overflow-y-auto hidden">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-slate-900 bg-opacity-75 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    
+    <div class="relative inline-block align-middle bg-white rounded-lg px-8 py-6 text-center shadow-xl transform transition-all">
+      <div class="flex flex-col items-center space-y-4">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p class="text-slate-600 font-medium">Yükleniyor...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal Variant -->
+<div id="{{ modal_id }}-confirm" class="fixed inset-0 z-50 overflow-y-auto hidden">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-slate-900 bg-opacity-75 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    
+    <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-6 py-4">
+        <div class="flex items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+            <i class="fas fa-exclamation-triangle text-red-600"></i>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 class="text-lg leading-6 font-medium text-slate-900" id="{{ modal_id }}-confirm-title">
+              Onay Gerekli
+            </h3>
+            <div class="mt-2">
+              <p class="text-sm text-slate-500" id="{{ modal_id }}-confirm-message">
+                Bu işlemi yapmak istediğinizden emin misiniz?
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-slate-50 px-6 py-4 sm:flex sm:flex-row-reverse">
+        <button type="button" 
+                class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
+                onclick="confirmAction()" 
+                id="{{ modal_id }}-confirm-btn">
+          Evet
+        </button>
+        <button type="button" 
+                class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
+                onclick="closeModal('{{ modal_id }}-confirm')">
+          Hayır
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Modal Management Functions
+const modalStack = [];
+
+function openModal(modalId, options = {}) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  // Add to modal stack
+  modalStack.push(modalId);
+  
+  // Show modal
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  
+  // Focus management
+  setTimeout(() => {
+    const firstFocusable = modal.querySelector('button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) {
+      firstFocusable.focus();
+    }
+  }, 100);
+  
+  // Load content if URL provided
+  if (options.url) {
+    loadModalContent(modalId, options.url);
+  }
+  
+  // Set title if provided
+  if (options.title) {
+    const titleEl = modal.querySelector(`#${modalId}-title`);
+    if (titleEl) titleEl.textContent = options.title;
+  }
+  
+  // Trigger custom event
+  modal.dispatchEvent(new CustomEvent('modal:opened', { detail: options }));
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  // Remove from modal stack
+  const index = modalStack.indexOf(modalId);
+  if (index > -1) {
+    modalStack.splice(index, 1);
+  }
+  
+  // Hide modal
+  modal.classList.add('hidden');
+  
+  // Restore scroll if no other modals
+  if (modalStack.length === 0) {
+    document.body.style.overflow = '';
+  }
+  
+  // Trigger custom event
+  modal.dispatchEvent(new CustomEvent('modal:closed'));
+}
+
+function loadModalContent(modalId, url) {
+  const modal = document.getElementById(modalId);
+  const content = modal.querySelector(`#${modalId}-content`);
+  
+  if (!content) return;
+  
+  // Show loading
+  content.innerHTML = `
+    <div class="flex items-center justify-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <span class="ml-3 text-slate-600">Yükleniyor...</span>
+    </div>
+  `;
+  
+  // Load content
+  fetch(url)
+    .then(response => response.text())
+    .then(html => {
+      content.innerHTML = html;
+      
+      // Execute any scripts in the loaded content
+      const scripts = content.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        newScript.textContent = script.textContent;
+        document.head.appendChild(newScript);
+        document.head.removeChild(newScript);
+      });
+    })
+    .catch(error => {
+      content.innerHTML = `
+        <div class="text-center py-8">
+          <i class="fas fa-exclamation-triangle text-red-500 text-2xl mb-2"></i>
+          <p class="text-red-600">İçerik yüklenirken hata oluştu.</p>
+        </div>
+      `;
+    });
+}
+
+// Confirmation Modal
+function showConfirmModal(message, title = 'Onay Gerekli', confirmText = 'Evet', cancelText = 'Hayır') {
+  return new Promise((resolve) => {
+    const modalId = '{{ modal_id }}-confirm';
+    const modal = document.getElementById(modalId);
+    
+    if (!modal) {
+      resolve(false);
+      return;
+    }
+    
+    // Set content
+    const titleEl = modal.querySelector(`#${modalId}-title`);
+    const messageEl = modal.querySelector(`#${modalId}-message`);
+    const confirmBtn = modal.querySelector(`#${modalId}-confirm-btn`);
+    
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
+    if (confirmBtn) confirmBtn.textContent = confirmText;
+    
+    // Set up event handlers
+    window.confirmAction = () => {
+      closeModal(modalId);
+      resolve(true);
+    };
+    
+    const cancelBtn = modal.querySelector('button[onclick="closeModal(\'' + modalId + '\')"]');
+    if (cancelBtn) {
+      cancelBtn.textContent = cancelText;
+      cancelBtn.onclick = () => {
+        closeModal(modalId);
+        resolve(false);
+      };
+    }
+    
+    openModal(modalId);
+  });
+}
+
+// Loading Modal
+function showLoadingModal(message = 'Yükleniyor...') {
+  const modalId = '{{ modal_id }}-loading';
+  const modal = document.getElementById(modalId);
+  
+  if (modal) {
+    const messageEl = modal.querySelector('p');
+    if (messageEl) messageEl.textContent = message;
+    openModal(modalId);
+  }
+}
+
+function hideLoadingModal() {
+  closeModal('{{ modal_id }}-loading');
+}
+
+// Keyboard event handlers
+document.addEventListener('keydown', function(e) {
+  if (modalStack.length === 0) return;
+  
+  const currentModalId = modalStack[modalStack.length - 1];
+  const modal = document.getElementById(currentModalId);
+  
+  if (!modal) return;
+  
+  // ESC key - close modal
+  if (e.key === 'Escape') {
+    const closable = !modal.hasAttribute('data-backdrop-static');
+    if (closable) {
+      closeModal(currentModalId);
+    }
+  }
+  
+  // Tab key - trap focus within modal
+  if (e.key === 'Tab') {
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+    
+    if (e.shiftKey) {
+      if (document.activeElement === firstFocusable) {
+        lastFocusable.focus();
+        e.preventDefault();
+      }
+    } else {
+      if (document.activeElement === lastFocusable) {
+        firstFocusable.focus();
+        e.preventDefault();
+      }
+    }
+  }
+});
+
+// Helper functions for common modal patterns
+function showImageModal(imageUrl, title = '') {
+  const modalId = '{{ modal_id }}';
+  const modal = document.getElementById(modalId);
+  
+  if (!modal) return;
+  
+  const content = modal.querySelector(`#${modalId}-content`);
+  const titleEl = modal.querySelector(`#${modalId}-title`);
+  
+  if (titleEl) titleEl.textContent = title || 'Resim Görüntüleme';
+  
+  if (content) {
+    content.innerHTML = `
+      <div class="text-center">
+        <img src="${imageUrl}" alt="${title}" class="max-w-full max-h-96 mx-auto rounded-lg shadow-lg">
+      </div>
+    `;
+  }
+  
+  openModal(modalId);
+}
+
+function showFormModal(formUrl, title = 'Form') {
+  const modalId = '{{ modal_id }}';
+  openModal(modalId, {
+    url: formUrl,
+    title: title
+  });
+}
+
+// Auto-initialize modals with data attributes
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-modal-trigger]').forEach(trigger => {
+    trigger.addEventListener('click', function() {
+      const modalId = this.getAttribute('data-modal-trigger');
+      const url = this.getAttribute('data-modal-url');
+      const title = this.getAttribute('data-modal-title');
+      
+      openModal(modalId, { url, title });
+    });
+  });
+});
+
+// Expose functions globally
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.showConfirmModal = showConfirmModal;
+window.showLoadingModal = showLoadingModal;
+window.hideLoadingModal = hideLoadingModal;
+window.showImageModal = showImageModal;
+window.showFormModal = showFormModal;
+</script>
+
+<style>
+/* Modal animations */
+.modal-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Backdrop blur animation */
+.backdrop-enter {
+  opacity: 0;
+}
+
+.backdrop-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.backdrop-exit {
+  opacity: 1;
+}
+
+.backdrop-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+/* Responsive modal sizes */
+@media (max-width: 640px) {
+  .modal-responsive {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+}
+</style>

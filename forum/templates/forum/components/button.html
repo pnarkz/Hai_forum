@@ -1,0 +1,44 @@
+{% comment %}
+Reusable Button Component
+Props:
+- text (required)
+- icon (optional)
+- url (optional): Django URL name
+- slug (optional): for topic-based routes
+- topic_id, comment_id, user_id (old, now you can ignore topic_id)
+- href (optional): raw URL
+- class (optional)
+- onclick (optional)
+Usage:
+{% include 'forum/components/button.html' with text='Düzenle' url='edit_topic' slug=topic.slug icon='fas fa-edit' class='bg-yellow-500' %}
+{% endcomment %}
+
+{% with base_class="inline-flex items-center justify-center px-4 py-2 rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-200" %}
+  {% if url %}
+    {% comment %} Desteklenen argümanlar: slug, topic_id, comment_id, user_id, veya none {% endcomment %}
+    {% if slug %}
+      <a href="{% url url slug %}"
+    {% elif topic_id %}
+      <a href="{% url url topic_id %}"
+    {% elif comment_id %}
+      <a href="{% url url comment_id %}"
+    {% elif user_id %}
+      <a href="{% url url user_id %}"
+    {% else %}
+      <a href="{% url url %}"
+    {% endif %}
+        class="{{ base_class }} {% if class %}{{ class }}{% endif %}"
+        {% if onclick %}onclick="{{ onclick }}"{% endif %}>
+        {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+        {{ text }}
+      </a>
+
+  {% elif href %}
+    <a href="{{ href }}"
+       class="{{ base_class }} {% if class %}{{ class }}{% endif %}"
+       {% if onclick %}onclick="{{ onclick }}"{% endif %}>
+      {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+      {{ text }}
+    </a>
+  {% endif %}
+{% endwith %}

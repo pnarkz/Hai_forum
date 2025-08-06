@@ -15,7 +15,7 @@
             <strong style="font-size:1.05rem;">{{ topic.title }}</strong><br>
             <span style="color:#555;">👤 {{ topic.author.username }}</span><br>
             <small style="color:#888;">🗓️ {{ topic.deleted_at|date:"Y-m-d H:i" }}</small><br>
-            <form method="post" action="{% url 'restore_topic' topic.id %}" style="margin-top:10px;">
+            <form method="post" action="{% url 'restore_topic' topic.slug %}" style="margin-top:10px;">
               {% csrf_token %}
               <button type="submit" style="background:#388E3C; color:#fff; padding:6px 12px; border:none; border-radius:6px;">♻️ Restore</button>
             </form>

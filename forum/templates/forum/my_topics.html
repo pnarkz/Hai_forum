@@ -8,7 +8,7 @@
     <ul class="space-y-4">
       {% for topic in my_topics %}
         <li class="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition">
-          <a href="{% url 'topic_detail' topic.pk %}" class="text-lg font-semibold text-indigo-600 hover:underline">
+          <a href="{% url 'topic_detail' topic.slug %}" class="text-lg font-semibold text-indigo-600 hover:underline">
             {{ topic.title }}
           </a>
           <p class="text-sm text-gray-500 mt-1">Yayın tarihi: {{ topic.created_at|date:"d M Y" }}</p>

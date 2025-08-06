@@ -1,0 +1,28 @@
+{% comment %}
+Reusable Tag Badge Component
+Props:
+- text (required)
+- icon (optional)
+- color (optional): Tailwind renk adı (default: purple)
+- url (optional): varsa <a>, yoksa <span> kullanır
+Usage:
+{% include 'forum/components/tag_badge.html' with text='AI Ethics' icon='fas fa-hashtag' color='purple' url='topics_by_category' %}
+{% endcomment %}
+
+{% with color=color|default:'purple' %}
+  {% if url %}
+    <a href="{{ url }}" class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ color }}-50 text-{{ color }}-700 border border-{{ color }}-200 hover:bg-{{ color }}-100 transition">
+      {% if icon %}
+        <i class="{{ icon }} mr-1 text-{{ color }}-500"></i>
+      {% endif %}
+      {{ text }}
+    </a>
+  {% else %}
+    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-{{ color }}-50 text-{{ color }}-700 border border-{{ color }}-200">
+      {% if icon %}
+        <i class="{{ icon }} mr-1 text-{{ color }}-500"></i>
+      {% endif %}
+      {{ text }}
+    </span>
+  {% endif %}
+{% endwith %}

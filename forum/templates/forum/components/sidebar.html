@@ -94,7 +94,6 @@
           </div>
         </div>
       </div>
-
       <!-- Kategoriler -->
       <div class="mb-6">
         <button class="category-toggle w-full flex items-center justify-between text-left" data-target="categories-content">
@@ -105,37 +104,16 @@
         </button>
         
         <div id="categories-content" class="category-content mt-3 space-y-1">
-          <a href="{% url 'topics_by_category' 2 %}" class="sidebar-link">
-            <i class="fas fa-chart-line text-green-500"></i>
-            <span class="sidebar-text">Machine Learning</span>
-          </a>
-          <a href="{% url 'topics_by_category' 3 %}" class="sidebar-link">
-            <i class="fas fa-cube text-indigo-500"></i>
-            <span class="sidebar-text">Django</span>
-          </a>
-          <a href="{% url 'topics_by_category' 4 %}" class="sidebar-link">
-            <i class="fas fa-network-wired text-yellow-500"></i>
-            <span class="sidebar-text">API Development</span>
-          </a>
-          <a href="{% url 'topics_by_category' 5 %}" class="sidebar-link">
-            <i class="fas fa-paint-brush text-pink-500"></i>
-            <span class="sidebar-text">Frontend</span>
-          </a>
-          <a href="{% url 'topics_by_category' 6 %}" class="sidebar-link">
-            <i class="fas fa-globe text-blue-500"></i>
-            <span class="sidebar-text">Web Dev</span>
-          </a>
-          <a href="{% url 'topics_by_category' 7 %}" class="sidebar-link">
-            <i class="fas fa-balance-scale text-gray-600"></i>
-            <span class="sidebar-text">AI Ethics</span>
-          </a>
-          <a href="{% url 'topics_by_category' 8 %}" class="sidebar-link">
-            <i class="fas fa-cloud text-sky-600"></i>
-            <span class="sidebar-text">Cloud</span>
-          </a>
+          {% for cat in categories %}
+            <a href="{% url 'topics_by_category' cat.slug %}" class="sidebar-link">
+              <i class="fas fa-folder text-slate-600"></i>
+              <span class="sidebar-text">{{ cat.name }}</span>
+            </a>
+          {% empty %}
+            <p class="text-sm text-slate-500 px-2">Henüz kategori yok.</p>
+          {% endfor %}
         </div>
       </div>
-
       <!-- Popüler Etiketler -->
       <div class="mb-6">
         <button class="category-toggle w-full flex items-center justify-between text-left" data-target="tags-content">

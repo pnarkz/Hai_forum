@@ -29,16 +29,10 @@
           </div>
         </div>
         
-        <!-- Quick Actions -->
+        <!-- Quick Actions with Button Component -->
         <div class="flex flex-wrap gap-3 mt-6">
-          <a href="{% url 'create_topic' %}" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center group">
-            <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform"></i>
-            Yeni Konu Başlat
-          </a>
-          <a href="{% url 'topic_list' %}" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center border border-white/20">
-            <i class="fas fa-compass mr-2"></i>
-            Konuları Keşfet
-          </a>
+          {% include 'forum/components/button.html' with text='Yeni Konu Başlat' type='primary' variant='ghost' size='lg' icon='fas fa-plus' url='create_topic' class='bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white' %}
+          {% include 'forum/components/button.html' with text='Konuları Keşfet' type='secondary' variant='outline' size='lg' icon='fas fa-compass' url='topic_list' class='bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20' %}
         </div>
       </div>
       
@@ -164,108 +158,7 @@
         
         <div class="divide-y divide-slate-200/50">
           {% for topic in top_topics %}
-          <div class="p-6 hover:bg-slate-50/50 transition-all duration-300 group">
-            <div class="flex items-start space-x-4">
-              <!-- Author Avatar -->
-              <div class="flex-shrink-0">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform duration-300">
-                  {{ topic.author.username|first|upper }}
-                </div>
-              </div>
-              
-              <!-- Content -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex-1">
-                    <a href="{% url 'topic_detail' topic.id %}" class="text-lg font-semibold text-slate-800 hover:text-blue-600 line-clamp-2 block transition-colors duration-200 group-hover:text-blue-600">
-                      {{ topic.title }}
-                    </a>
-                    <div class="flex items-center text-sm text-slate-500 mt-2 space-x-4">
-                      <div class="flex items-center">
-                        <i class="fas fa-user-circle mr-1 text-slate-400"></i>
-                        <span class="font-medium text-slate-700">{{ topic.author.username }}</span>
-                      </div>
-                      <div class="flex items-center">
-                        <i class="far fa-clock mr-1 text-slate-400"></i>
-                        <span>{{ topic.date_created|timesince }} önce</span>
-                      </div>
-                      {% if topic.category %}
-                      <div class="flex items-center">
-                        <i class="fas fa-folder mr-1 text-slate-400"></i>
-                        <span class="text-blue-600 font-medium">{{ topic.category.name }}</span>
-                      </div>
-                      {% endif %}
-                    </div>
-                  </div>
-                  
-                  <!-- Topic Status Badges -->
-                  <div class="flex flex-col items-end space-y-2 ml-4">
-                    {% if topic.is_pinned %}
-                    <span class="flex items-center text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
-                      <i class="fas fa-thumbtack mr-1"></i>
-                      Sabitlenmiş
-                    </span>
-                    {% endif %}
-                    {% if topic.is_trending %}
-                    <span class="flex items-center text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
-                      <i class="fas fa-trending-up mr-1"></i>
-                      Trend
-                    </span>
-                    {% endif %}
-                  </div>
-                </div>
-                
-                <!-- Content Preview -->
-                <p class="text-slate-600 mb-4 line-clamp-2 leading-relaxed">
-                  {{ topic.content|truncatechars:200 }}
-                </p>
-                
-                <!-- Engagement Stats -->
-                <div class="flex items-center justify-between">
-                  <div class="flex space-x-6">
-                    <span class="text-sm text-slate-500 flex items-center hover:text-red-500 transition-colors cursor-pointer">
-                      <i class="far fa-heart mr-2 text-red-400"></i> 
-                      {{ topic.likes.count|default:"0" }}
-                    </span>
-                    <span class="text-sm text-slate-500 flex items-center hover:text-blue-500 transition-colors">
-                      <i class="far fa-comment mr-2 text-blue-400"></i> 
-                      {{ topic.comment_set.count|default:"0" }}
-                    </span>
-                    <span class="text-sm text-slate-500 flex items-center hover:text-green-500 transition-colors">
-                      <i class="far fa-eye mr-2 text-green-400"></i> 
-                      {{ topic.views|default:"0" }}
-                    </span>
-                    <span class="text-sm text-slate-500 flex items-center hover:text-purple-500 transition-colors">
-                      <i class="fas fa-share mr-2 text-purple-400"></i> 
-                      {{ topic.shares|default:"0" }}
-                    </span>
-                  </div>
-                  
-                  <!-- Media Indicators -->
-                  <div class="flex space-x-2">
-                    {% if topic.image %}
-                    <span class="text-xs text-blue-600 flex items-center bg-blue-50 px-2 py-1 rounded-full">
-                      <i class="far fa-image mr-1"></i>
-                      Görsel
-                    </span>
-                    {% endif %}
-                    {% if topic.video %}
-                    <span class="text-xs text-purple-600 flex items-center bg-purple-50 px-2 py-1 rounded-full">
-                      <i class="far fa-play-circle mr-1"></i>
-                      Video
-                    </span>
-                    {% endif %}
-                    {% if topic.has_poll %}
-                    <span class="text-xs text-green-600 flex items-center bg-green-50 px-2 py-1 rounded-full">
-                      <i class="fas fa-poll mr-1"></i>
-                      Anket
-                    </span>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            {% include 'forum/components/topic_card.html' with topic=topic show_full_content=False show_engagement=True %}
           {% empty %}
           <div class="p-12 text-center">
             <div class="w-20 h-20 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -273,10 +166,7 @@
             </div>
             <h3 class="text-xl font-semibold text-slate-600 mb-2">Henüz konu yok</h3>
             <p class="text-slate-500 mb-6">İlk konuyu siz açın ve yapay zeka tartışmasını başlatın!</p>
-            <a href="{% url 'create_topic' %}" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300 inline-flex items-center">
-              <i class="fas fa-plus mr-2"></i>
-              İlk Konuyu Aç
-            </a>
+            {% include 'forum/components/button.html' with text='İlk Konuyu Aç' type='primary' size='lg' icon='fas fa-plus' url='create_topic' %}
           </div>
           {% endfor %}
         </div>
@@ -334,18 +224,9 @@
         </div>
         
         <div class="p-4 space-y-2">
-          <a href="{% url 'create_topic' %}" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center group">
-            <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform"></i>
-            Yeni Konu Başlat
-          </a>
-          <a href="{% url 'topic_list' %}" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 p-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center">
-            <i class="fas fa-list mr-2"></i>
-            Tüm Konular
-          </a>
-          <a href="#" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 p-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center">
-            <i class="fas fa-search mr-2"></i>
-            Gelişmiş Arama
-          </a>
+          {% include 'forum/components/button.html' with text='Yeni Konu Başlat' type='primary' size='md' icon='fas fa-plus' url='create_topic' class='w-full' %}
+          {% include 'forum/components/button.html' with text='Tüm Konular' type='secondary' size='md' icon='fas fa-list' url='topic_list' class='w-full' %}
+          {% include 'forum/components/button.html' with text='Gelişmiş Arama' type='secondary' size='md' icon='fas fa-search' onclick='openSearchModal()' class='w-full' %}
         </div>
       </div>
 
@@ -419,6 +300,7 @@
               <span class="ml-1 text-xs opacity-75">({{ tag.topic_count }})</span>
             </a>
             {% empty %}
+            <!-- Default tags for demo -->
             <a href="#" class="popular-tag text-sm bg-gradient-to-r from-blue-100 to-sky-100 hover:from-blue-500 hover:to-sky-500 hover:text-white text-blue-700 px-3 py-2 rounded-full transition-all duration-300 font-medium">
               #yapay-zeka <span class="ml-1 text-xs opacity-75">(42)</span>
             </a>
@@ -550,9 +432,7 @@
           
           {% if online_users > 4 %}
           <div class="mt-3 text-center">
-            <button class="text-xs text-blue-600 hover:text-blue-700 font-medium">
-              +{{ online_users|add:"-4" }} daha fazla göster
-            </button>
+            {% include 'forum/components/button.html' with text='+{{ online_users|add:"-4" }} daha fazla göster' type='ghost' size='sm' %}
           </div>
           {% endif %}
         </div>
@@ -629,6 +509,9 @@
   </div>
 </div>
 
+<!-- Search Modal -->
+{% include 'forum/components/modal.html' with modal_id='searchModal' title='Gelişmiş Arama' size='lg' %}
+
 <script>
 // Advanced interactions for the home page
 document.addEventListener('DOMContentLoaded', function() {
@@ -640,7 +523,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (entry.isIntersecting) {
           const target = entry.target;
           const finalValue = parseInt(target.textContent.replace(/[^\d]/g, ''));
-          animateValue(target, 0, finalValue, 1000);
+          if (!isNaN(finalValue)) {
+            animateValue(target, 0, finalValue, 1000);
+          }
           observer.unobserve(target);
         }
       });
@@ -667,12 +552,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize animations
   setTimeout(animateStats, 300);
   
-  // Add hover effects to topic cards
-  const topicCards = document.querySelectorAll('[class*="hover:bg-slate-50/50"]');
-  topicCards.forEach(card => {
+  // Add hover effects to cards
+  const cards = document.querySelectorAll('.card-shadow');
+  cards.forEach(card => {
     card.addEventListener('mouseenter', function() {
       this.style.transform = 'translateY(-2px)';
-      this.style.boxShadow = '0 10px 25px -3px rgba(0, 0, 0, 0.1)';
+      this.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
     });
     
     card.addEventListener('mouseleave', function() {
@@ -683,19 +568,89 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Real-time updates simulation
   const simulateRealTimeUpdates = () => {
-    const onlineCount = document.querySelector('[class*="animate-ping"]').closest('div').querySelector('.text-2xl');
-    if (onlineCount) {
+    const onlineCountElement = document.querySelector('.animate-ping')?.closest('.xl\\:col-span-4')?.querySelector('.text-2xl');
+    if (onlineCountElement) {
       setInterval(() => {
-        const currentCount = parseInt(onlineCount.textContent);
-        const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
-        const newCount = Math.max(0, currentCount + variation);
-        onlineCount.textContent = newCount;
+        const currentCount = parseInt(onlineCountElement.textContent);
+        if (!isNaN(currentCount)) {
+          const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+          const newCount = Math.max(0, currentCount + variation);
+          onlineCountElement.textContent = newCount;
+        }
       }, 30000); // Update every 30 seconds
     }
   };
   
+  // Tag cloud hover effects
+  const tags = document.querySelectorAll('.popular-tag');
+  tags.forEach(tag => {
+    tag.addEventListener('mouseenter', function() {
+      this.style.transform = 'scale(1.05)';
+    });
+    
+    tag.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1)';
+    });
+  });
+  
   setTimeout(simulateRealTimeUpdates, 2000);
 });
+
+// Search modal function
+function openSearchModal() {
+  const modal = document.getElementById('searchModal');
+  if (modal) {
+    // Create search form content
+    const searchContent = `
+      <form class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Arama Terimi</label>
+          <input type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Aramak istediğiniz konuyu yazın...">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Kategori</label>
+            <select class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option>Tüm Kategoriler</option>
+              <option>Yapay Zeka</option>
+              <option>Machine Learning</option>
+              <option>Deep Learning</option>
+              <option>NLP</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Tarih Aralığı</label>
+            <select class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option>Tüm Zamanlar</option>
+              <option>Son 24 Saat</option>
+              <option>Son Hafta</option>
+              <option>Son Ay</option>
+              <option>Son Yıl</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex space-x-3">
+          <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <i class="fas fa-search mr-2"></i>Ara
+          </button>
+          <button type="button" onclick="closeModal('searchModal')" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+            İptal
+          </button>
+        </div>
+      </form>
+    `;
+    
+    const modalBody = modal.querySelector('.modal-body');
+    if (modalBody) {
+      modalBody.innerHTML = searchContent;
+    }
+    
+    // Show modal (assuming you have a showModal function from the modal component)
+    if (typeof showModal === 'function') {
+      showModal('searchModal');
+    }
+  }
+}
 </script>
 
 {% endblock %}
