@@ -74,59 +74,40 @@
             </div>
           {% endif %}
         </div>
-
         <!-- Media Upload -->
         <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
           <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
             <i class="fas fa-image mr-2 text-accent-600"></i>
             Medya Ekle (İsteğe bağlı)
           </label>
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Image Upload -->
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary-400 transition-colors">
-              <label class="block text-xs font-medium text-gray-600 mb-2 flex items-center">
-                <i class="fas fa-image mr-2 text-primary-500"></i>Fotoğraf
-              </label>
-              <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-colors">
-              {% if form.image.errors %}
-                <div class="mt-1 text-xs text-red-600 flex items-center">
-                  <i class="fas fa-exclamation-triangle mr-1"></i>{{ form.image.errors.0 }}
-                </div>
-              {% endif %}
-              <div id="imagePreview" class="mt-3 hidden">
-                <img id="imagePreviewImg" src="" alt="Önizleme" class="max-w-full h-32 object-cover rounded-lg">
-              </div>
-            </div>
-            <!-- Video Upload -->
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-secondary-400 transition-colors">
-              <label class="block text-xs font-medium text-gray-600 mb-2 flex items-center">
-                <i class="fas fa-video mr-2 text-secondary-500"></i>Video
-              </label>
-              <input type="file" name="video" accept="video/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-secondary-50 file:text-secondary-700 hover:file:bg-secondary-100 transition-colors">
-              {% if form.video.errors %}
-                <div class="mt-1 text-xs text-red-600 flex items-center">
-                  <i class="fas fa-exclamation-triangle mr-1"></i>{{ form.video.errors.0 }}
-                </div>
-              {% endif %}
-              <div id="videoPreview" class="mt-3 hidden">
-                <video id="videoPreviewVideo" controls class="max-w-full h-32 object-cover rounded-lg">
-                  <source src="" type="video/mp4">
-                </video>
-              </div>
-            </div>
+          <!-- AJAX Upload Box -->
+          <div class="mt-6">
+            <label class="block text-xs font-medium text-gray-600 mb-2">Hızlı Yükle (AJAX)</label>
+            <input type="file" id="ajaxCommentFile" class="mb-2">
+            <button type="button" id="ajaxCommentUploadBtn"
+                    class="px-3 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">
+              Yükle
+            </button>
+
+            <div id="ajaxCommentPreview" class="mt-3"></div>
+            <!-- form submit sırasında backend'e gidecek -->
+            <input type="hidden" name="uploaded_file_path" id="uploadedCommentFilePath">
           </div>
+
           <div class="mt-3 bg-blue-50 rounded-lg p-3">
             <p class="text-xs text-blue-700 flex items-start">
               <i class="fas fa-info-circle mr-2 mt-0.5 text-blue-500"></i>
               <span>
                 <strong>Medya dosyaları yorumunuzu destekleyebilir:</strong><br>
                 • Fotoğraf: JPG, PNG, GIF (Max 10MB)<br>
-                • Video: MP4, WebM (Max 50MB)
+                • Video: MP4, WebM (Max 50MB)<br>
+                • AJAX yükleme ile dosya anında yüklenecek ve önizlemesi görünecek.
               </span>
             </p>
           </div>
         </div>
-      </div>
 
       <!-- Sidebar -->
       <div class="space-y-6">
@@ -201,46 +182,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Image preview
-    const imageInput = document.querySelector('input[type="file"][name="image"]');
-    const imagePreview = document.getElementById('imagePreview');
-    const imagePreviewImg = document.getElementById('imagePreviewImg');
-    
-    if (imageInput) {
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreviewImg.src = e.target.result;
-                    imagePreview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            } else if (!file) {
-                imagePreview.classList.add('hidden');
-            }
-        });
-    }
-    
-    // Video preview
-    const videoInput = document.querySelector('input[type="file"][name="video"]');
-    const videoPreview = document.getElementById('videoPreview');
-    const videoPreviewVideo = document.getElementById('videoPreviewVideo');
-    
-    if (videoInput) {
-        videoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file && file.type.startsWith('video/')) {
-                const url = URL.createObjectURL(file);
-                videoPreviewVideo.querySelector('source').src = url;
-                videoPreviewVideo.load();
-                videoPreview.classList.remove('hidden');
-            } else if (!file) {
-                videoPreview.classList.add('hidden');
-            }
-        });
-    }
-    
+
     // Form submission
     const form = document.getElementById('commentForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -261,5 +203,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+// CSRF helper
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + "=")) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.getElementById("ajaxCommentUploadBtn").addEventListener("click", function () {
+  const fileInput = document.getElementById("ajaxCommentFile");
+  const file = fileInput.files[0];
+  if (!file) return alert("Lütfen dosya seçin!");
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("type", "comment"); // backend'de ayırt etmek için
+
+  fetch("{% url 'ajax_file_upload' %}", {
+    method: "POST",
+    body: formData,
+    headers: { "X-CSRFToken": getCookie("csrftoken") }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById("ajaxCommentPreview").innerHTML =
+        file.type.startsWith("image/")
+          ? `<img src="${data.url}" class="h-32 rounded">`
+          : `<video src="${data.url}" controls class="h-32 rounded"></video>`;
+      document.getElementById("uploadedCommentFilePath").value = data.path;
+    } else {
+      alert("Yükleme hatası: " + data.error);
+    }
+  })
+  .catch(err => console.error("Upload error", err));
+});
+
 </script>
 {% endblock %}

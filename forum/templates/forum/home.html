@@ -53,84 +53,6 @@
     </div>
   </div>
 
-  <!-- Advanced Stats Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-    <!-- Aktif Konular -->
-    <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 card-shadow border border-blue-100/50 hover:border-blue-200 transition-all duration-300 group">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <i class="fas fa-comments text-white text-xl"></i>
-        </div>
-        <div class="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-          <div class="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
-          Aktif
-        </div>
-      </div>
-      <h3 class="text-2xl font-bold text-slate-800 mb-1">{{ total_topics|default:"0" }}</h3>
-      <p class="text-slate-600 text-sm mb-2">Toplam Konu</p>
-      <div class="flex items-center text-xs text-slate-500">
-        <i class="fas fa-arrow-up text-green-500 mr-1"></i>
-        <span>Bu ay +{{ monthly_topics|default:"12" }}</span>
-      </div>
-    </div>
-
-    <!-- Toplum Üyeleri -->
-    <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 card-shadow border border-blue-100/50 hover:border-blue-200 transition-all duration-300 group">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-gradient-to-r from-sky-500 to-sky-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <i class="fas fa-users text-white text-xl"></i>
-        </div>
-        <div class="flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-          <i class="fas fa-globe mr-1"></i>
-          Global
-        </div>
-      </div>
-      <h3 class="text-2xl font-bold text-slate-800 mb-1">{{ total_users|default:"0" }}</h3>
-      <p class="text-slate-600 text-sm mb-2">Toplum Üyesi</p>
-      <div class="flex items-center text-xs text-slate-500">
-        <i class="fas fa-user-plus text-blue-500 mr-1"></i>
-        <span>Bu hafta +{{ weekly_users|default:"24" }}</span>
-      </div>
-    </div>
-
-    <!-- Etkileşimler -->
-    <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 card-shadow border border-blue-100/50 hover:border-blue-200 transition-all duration-300 group">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <i class="fas fa-comment-dots text-white text-xl"></i>
-        </div>
-        <div class="flex items-center text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
-          <i class="fas fa-heart mr-1"></i>
-          Popüler
-        </div>
-      </div>
-      <h3 class="text-2xl font-bold text-slate-800 mb-1">{{ total_comments|default:"0" }}</h3>
-      <p class="text-slate-600 text-sm mb-2">Toplam Etkileşim</p>
-      <div class="flex items-center text-xs text-slate-500">
-        <i class="fas fa-chart-line text-purple-500 mr-1"></i>
-        <span>Günlük ort. {{ daily_engagement|default:"156" }}</span>
-      </div>
-    </div>
-
-    <!-- Aktif Kullanıcılar -->
-    <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 card-shadow border border-blue-100/50 hover:border-blue-200 transition-all duration-300 group">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <i class="fas fa-bolt text-white text-xl"></i>
-        </div>
-        <div class="flex items-center text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-          <div class="w-2 h-2 bg-emerald-500 rounded-full mr-1 animate-ping"></div>
-          Canlı
-        </div>
-      </div>
-      <h3 class="text-2xl font-bold text-slate-800 mb-1">{{ online_users|default:"0" }}</h3>
-      <p class="text-slate-600 text-sm mb-2">Şu An Aktif</p>
-      <div class="flex items-center text-xs text-slate-500">
-        <i class="fas fa-clock text-emerald-500 mr-1"></i>
-        <span>Son 15 dakika</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Main Content Grid -->
   <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
@@ -295,30 +217,9 @@
         <div class="p-6">
           <div class="flex flex-wrap gap-2">
             {% for tag in popular_tags %}
-            <a href="{% url 'topics_by_tag' tag.slug %}" class="popular-tag text-sm bg-gradient-to-r from-blue-100 to-sky-100 hover:from-blue-500 hover:to-sky-500 hover:text-white text-blue-700 px-3 py-2 rounded-full transition-all duration-300 font-medium shadow-sm hover:shadow-md">
-              #{{ tag.name }}
-              <span class="ml-1 text-xs opacity-75">({{ tag.topic_count }})</span>
-            </a>
+              {% include 'forum/components/tag_badge.html' with tag=tag %}
             {% empty %}
-            <!-- Default tags for demo -->
-            <a href="#" class="popular-tag text-sm bg-gradient-to-r from-blue-100 to-sky-100 hover:from-blue-500 hover:to-sky-500 hover:text-white text-blue-700 px-3 py-2 rounded-full transition-all duration-300 font-medium">
-              #yapay-zeka <span class="ml-1 text-xs opacity-75">(42)</span>
-            </a>
-            <a href="#" class="popular-tag text-sm bg-gradient-to-r from-indigo-100 to-purple-100 hover:from-indigo-500 hover:to-purple-500 hover:text-white text-indigo-700 px-3 py-2 rounded-full transition-all duration-300 font-medium">
-              #machine-learning <span class="ml-1 text-xs opacity-75">(38)</span>
-            </a>
-            <a href="#" class="popular-tag text-sm bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-500 hover:to-emerald-500 hover:text-white text-green-700 px-3 py-2 rounded-full transition-all duration-300 font-medium">
-              #deep-learning <span class="ml-1 text-xs opacity-75">(29)</span>
-            </a>
-            <a href="#" class="popular-tag text-sm bg-gradient-to-r from-orange-100 to-red-100 hover:from-orange-500 hover:to-red-500 hover:text-white text-orange-700 px-3 py-2 rounded-full transition-all duration-300 font-medium">
-              #python <span class="ml-1 text-xs opacity-75">(25)</span>
-            </a>
-            <a href="#" class="popular-tag text-sm bg-gradient-to-r from-pink-100 to-rose-100 hover:from-pink-500 hover:to-rose-500 hover:text-white text-pink-700 px-3 py-2 rounded-full transition-all duration-300 font-medium">
-              #tensorflow <span class="ml-1 text-xs opacity-75">(22)</span>
-            </a>
-            <a href="#" class="popular-tag text-sm bg-gradient-to-r from-cyan-100 to-teal-100 hover:from-cyan-500 hover:to-teal-500 hover:text-white text-cyan-700 px-3 py-2 rounded-full transition-all duration-300 font-medium">
-              #nlp <span class="ml-1 text-xs opacity-75">(19)</span>
-            </a>
+              {% include 'forum/components/tag_badge.html' with tag=demo_tag %}          
             {% endfor %}
           </div>
         </div>

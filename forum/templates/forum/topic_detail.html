@@ -12,6 +12,12 @@
         <div class="flex items-center flex-wrap gap-3 text-sm text-slate-600">
           {% include 'forum/components/user_avatar.html' with user=topic.author %}
           <span class="text-xs text-slate-400">{{ topic.date_created|date:"d M Y, H:i" }}</span>
+
+          {% if topic.is_edited %}
+            <span class="text-xs text-slate-400">
+              (Son düzenleme: {{ topic.updated_at|date:"d M Y, H:i" }})
+            </span>
+          {% endif %}
           {% if topic.category %}
             {% include 'forum/components/status_badge.html' with text=topic.category.name icon='fas fa-folder' %}
           {% endif %}
@@ -99,7 +105,7 @@
 
     {% if comments.exists %}
       {% for comment in comments %}
-        {% include 'forum/components/comment_card.html' with comment=comment topic_slug=topic.slug %}
+        {% include 'forum/components/comment_card.html' with comment=comment user=request.user is_reply=False %}
       {% endfor %}
     {% else %}
       <div class="text-slate-500 text-sm text-center py-8">

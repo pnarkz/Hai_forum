@@ -5,7 +5,7 @@ from .models import Topic, Comment
 class TopicForm(forms.ModelForm):
     class Meta:
         model = Topic
-        fields = ['title', 'content', 'category', 'image', 'video', 'tags']
+        fields = ['title', 'content', 'category',  'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -19,33 +19,21 @@ class TopicForm(forms.ModelForm):
             'category': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'image': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-            'video': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'video/*'
-            }),
         }
 
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ['content', 'image', 'video']
+        fields = ['content']
         widgets = {
             'content': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
                 'placeholder': 'Yorumunuzu yazın...'
             }),
-            'image': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-            'video': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'video/*'
-            }),
         }
+
+class UploadForm(forms.Form):
+    image = forms.ImageField(required=False)
+    video = forms.FileField(required=False)

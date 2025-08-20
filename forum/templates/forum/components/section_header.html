@@ -1,0 +1,11 @@
+<div class="p-6 border-b border-slate-200/50 {{ bg }}">
+  <h2 class="text-xl font-bold text-slate-800 flex items-center">
+    <div class="w-8 h-8 {{ icon_bg }} rounded-lg flex items-center justify-center mr-3">
+      <i class="{{ icon }} text-white text-sm"></i>
+    </div>
+    {{ title }}
+  </h2>
+  {% if subtitle %}
+    <p class="text-slate-600 text-sm mt-1">{{ subtitle }}</p>
+  {% endif %}
+</div>

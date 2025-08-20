@@ -42,8 +42,8 @@ Props:
           <!-- Zaman -->
           <div class="flex items-center space-x-2 text-sm text-slate-500 mt-1">
             <i class="far fa-clock text-xs"></i>
-            <span>{{ comment.created_at|timesince }} önce</span>
-            {% if comment.created_at != comment.updated_at %}
+            <span>{{ comment.date_created|timesince }} önce</span>
+            {% if comment.date_created != comment.updated_at %}
               <span class="text-slate-400">•</span>
               <span class="italic">düzenlendi</span>
             {% endif %}
@@ -90,13 +90,34 @@ Props:
         </div>
       </div>
     </div>
+      <!-- İçerik -->
+      <div class="prose prose-slate max-w-none mb-4">
+        {% if comment.content_html %}
+          {{ comment.content_html|safe }}
+        {% else %}
+          <p class="whitespace-pre-wrap">{{ comment.content }}</p>
+        {% endif %}
+      </div>
 
-    <!-- İçerik -->
-    <div class="prose prose-slate max-w-none mb-4">
-      {% if comment.content_html %}
-        {{ comment.content_html|safe }}
-      {% else %}
-        <p class="whitespace-pre-wrap">{{ comment.content }}</p>
+      <!-- Medya -->
+      {% if comment.image or comment.video %}
+        <div class="mb-4 space-y-3">
+          {% if comment.image %}
+            <div>
+              <img src="{{ comment.image.url }}" 
+                  alt="Yorum görseli"
+                  class="rounded-lg max-h-80 object-cover shadow-md">
+            </div>
+          {% endif %}
+          {% if comment.video %}
+            <div>
+              <video controls class="rounded-lg max-h-80 shadow-md w-full">
+                <source src="{{ comment.video.url }}">
+                Tarayıcınız video oynatmayı desteklemiyor.
+              </video>
+            </div>
+          {% endif %}
+        </div>
       {% endif %}
     </div>
 

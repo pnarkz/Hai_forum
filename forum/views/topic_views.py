@@ -56,12 +56,29 @@ def create_topic(request):
         if form.is_valid():
             topic = form.save(commit=False)
             topic.author = request.user
+
+            # 1. Öncelik: AJAX ile gelen hidden input (relative path)
+            uploaded_path = request.POST.get("uploaded_file_path")
+            if uploaded_path:
+                if uploaded_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                    topic.image.name = uploaded_path   # .name önemli
+                elif uploaded_path.lower().endswith(('.mp4', '.webm')):
+                    topic.video.name = uploaded_path   # .name önemli
+
+            # 2. Klasik form upload (fallback)
+            elif request.FILES.get("image"):
+                topic.image = request.FILES["image"]
+            elif request.FILES.get("video"):
+                topic.video = request.FILES["video"]
+
             topic.save()
             log_activity(request.user, topic, "created_topic")
+
             messages.success(request, "Topic created successfully.")
             return redirect('topic_detail', slug=topic.slug)
     else:
         form = TopicForm()
+
     return render(request, 'forum/create_topic.html', {'form': form})
 
 
@@ -90,6 +107,7 @@ def topic_detail(request, slug):
 def edit_topic(request, slug):
     topic = get_object_or_404(Topic, slug=slug)
 
+    # Yetki kontrolü
     if request.user != topic.author and not request.user.is_staff:
         messages.error(request, "You are not authorized to edit this topic.")
         return redirect('topic_detail', slug=topic.slug)
@@ -97,14 +115,42 @@ def edit_topic(request, slug):
     if request.method == 'POST':
         form = TopicForm(request.POST, request.FILES, instance=topic)
         if form.is_valid():
-            form.save()
+            topic = form.save(commit=False)
+
+            # 🔹 Düzenleme bilgisi
+            topic.is_edited = True   # artık düzenlenmiş kabul edilecek
+
+            # 1. Öncelik: AJAX hidden input
+            uploaded_path = request.POST.get("uploaded_file_path")
+            if uploaded_path:
+                try:
+                    if uploaded_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                        topic.image.name = uploaded_path
+                        topic.video = None  # aynı anda video varsa sıfırla
+                    elif uploaded_path.lower().endswith(('.mp4', '.webm')):
+                        topic.video.name = uploaded_path
+                        topic.image = None  # aynı anda görsel varsa sıfırla
+                except Exception as e:
+                    print("AJAX upload error (edit_topic):", e)
+
+            # 2. Fallback: klasik form upload
+            elif request.FILES.get("image"):
+                topic.image = request.FILES["image"]
+                topic.video = None
+            elif request.FILES.get("video"):
+                topic.video = request.FILES["video"]
+                topic.image = None
+
+            topic.save()
             log_activity(request.user, topic, "updated_topic")
+
             messages.success(request, "Topic updated successfully.")
             return redirect('topic_detail', slug=topic.slug)
     else:
         form = TopicForm(instance=topic)
 
     return render(request, 'forum/edit_topic.html', {'form': form, 'topic': topic})
+
 
 
 @login_required

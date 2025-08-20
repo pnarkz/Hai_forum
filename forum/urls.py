@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.contrib.auth.views import LogoutView, LoginView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views.upload_views import ajax_file_upload
 from .views import (
     home, topic_list, topics_by_category, create_topic, create_comment, topic_detail, toggle_like,
     toggle_comment_like, delete_topic, delete_comment, restore_topic, restore_comment,
@@ -59,5 +60,7 @@ urlpatterns = [
     path('api/', include('forum.api.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    path("upload/", ajax_file_upload, name="ajax_file_upload"),
 ]
 

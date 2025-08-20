@@ -15,7 +15,6 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField( blank=True)
@@ -48,14 +47,17 @@ class Topic(TimeStampedModel):
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     tags = TaggableManager(blank=True)
-    image = models.ImageField(upload_to='topic_images/', null=True, blank=True)
-    video = models.FileField(upload_to='topic_videos/', null=True, blank=True)
+
+    image = models.ImageField(upload_to='uploads/images/', null=True, blank=True)
+    video = models.FileField(upload_to='uploads/videos/', null=True, blank=True)
+
     views = models.PositiveIntegerField(default=0)
     favorited_by = models.ManyToManyField(User, related_name='favorited_topics', blank=True)
     slug = models.SlugField(unique=True, blank=True)
     is_solved = models.BooleanField(default=False)
     solved_at = models.DateTimeField(null=True, blank=True)
-
+    is_edited = models.BooleanField(default=False)
+    
     def __str__(self):
         return self.title
 
@@ -80,9 +82,9 @@ class Comment(TimeStampedModel):
     likes = models.ManyToManyField(User, related_name='liked_comments', blank=True)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    image = models.ImageField(upload_to='comment_images/', null=True, blank=True)
-    video = models.FileField(upload_to='comment_videos/', null=True, blank=True)
-    
+    image = models.ImageField(upload_to='uploads/images/', null=True, blank=True)
+    video = models.FileField(upload_to='uploads/videos/', null=True, blank=True)
+
     # Çözüm işaretleme için eklenen alan
     is_solution = models.BooleanField(default=False)
 

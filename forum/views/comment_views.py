@@ -5,10 +5,15 @@ from django.utils import timezone
 from django.urls import reverse
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.conf import settings
 
 from ..models import Topic, Comment, Notification
 from ..forms import CommentForm
 from forum.utils import log_activity
+
+from django.conf import settings
+from django.core.files.base import ContentFile
+import requests, os
 
 
 
@@ -22,9 +27,25 @@ def create_comment(request, slug):
             comment = form.save(commit=False)
             comment.topic = topic
             comment.author = request.user
+
+            # 1. Öncelik: AJAX ile gelen hidden input (relative path)
+            uploaded_path = request.POST.get("uploaded_file_path")
+            if uploaded_path:
+                if uploaded_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                    comment.image.name = uploaded_path
+                elif uploaded_path.lower().endswith(('.mp4', '.webm')):
+                    comment.video.name = uploaded_path
+
+            # 2. Klasik form upload (fallback)
+            elif request.FILES.get("image"):
+                comment.image = request.FILES["image"]
+            elif request.FILES.get("video"):
+                comment.video = request.FILES["video"]
+
             comment.save()
             log_activity(request.user, comment, "created_comment")
 
+            # Bildirim gönder
             if request.user != topic.author:
                 Notification.objects.create(
                     recipient=topic.author,
@@ -43,15 +64,8 @@ def create_comment(request, slug):
     else:
         form = CommentForm()
 
-    # Form stilleri
-    form.fields['content'].widget.attrs.update({
-        'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none',
-        'rows': '6',
-        'placeholder': 'Write your comment...',
-        'required': 'required'
-    })
-
     return render(request, 'forum/create_comment.html', {'form': form, 'topic': topic})
+
 
 
 @login_required

@@ -31,7 +31,7 @@
   {% endif %}
 
   <!-- Form -->
-  <form method="post" enctype="multipart/form-data" class="space-y-6">
+  <form id="topicForm" method="post" enctype="multipart/form-data" class="space-y-6">
     {% csrf_token %}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Main Form Content -->
@@ -74,23 +74,22 @@
             Medya Dosyaları
           </label>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Image Upload -->
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-2">Fotoğraf</label>
-              {{ form.image|add_class:"w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-colors" }}
-              {% if form.image.errors %}
-                <div class="mt-1 text-xs text-red-600">{{ form.image.errors.0 }}</div>
-              {% endif %}
-            </div>
-            <!-- Video Upload -->
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-2">Video</label>
-              {{ form.video|add_class:"w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-secondary-50 file:text-secondary-700 hover:file:bg-secondary-100 transition-colors" }}
-              {% if form.video.errors %}
-                <div class="mt-1 text-xs text-red-600">{{ form.video.errors.0 }}</div>
-              {% endif %}
+            <!-- AJAX File Input -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary-400 transition-colors">
+              <label class="block text-xs font-medium text-gray-600 mb-2 flex items-center">
+                <i class="fas fa-upload mr-2 text-primary-500"></i>Dosya Seç
+              </label>
+              <input type="file" id="ajaxTopicFile" class="w-full text-sm text-gray-500" accept="image/*,video/*">
+              <button type="button" id="ajaxTopicUploadBtn"
+                      class="mt-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Yükle
+              </button>
+              <div id="ajaxTopicPreview" class="mt-3"></div>
+              <!-- Hidden input, backend'e URL aktarır -->
+              <input type="hidden" name="uploaded_file_path" id="uploadedTopicFilePath">
             </div>
           </div>
+
           <p class="text-xs text-gray-500 mt-2">
             <i class="fas fa-info-circle mr-1"></i>
             Desteklenen formatlar: JPG, PNG, GIF (fotoğraf) | MP4, WebM (video) | Max 10MB
@@ -173,4 +172,99 @@
     </div>
   </form>
 </div>
+
+<script>
+// CSRF helper
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + "=")) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const fileInput = document.getElementById("ajaxTopicFile");
+  const uploadBtn = document.getElementById("ajaxTopicUploadBtn");
+  const preview = document.getElementById("ajaxTopicPreview");
+  const hiddenPath = document.getElementById("uploadedTopicFilePath");
+
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", function () {
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Lütfen dosya seçin!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Loading indicator
+      preview.innerHTML = '<p class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Yükleniyor...</p>';
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "Yükleniyor...";
+
+      fetch("{% url 'ajax_file_upload' %}", {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": getCookie("csrftoken") }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Preview göster
+          if (file.type.startsWith("image/")) {
+            preview.innerHTML = `
+              <div class="relative">
+                <img src="${data.url}" class="h-32 w-full object-cover rounded-lg">
+                <button type="button" onclick="removeUploadedFile()" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            `;
+          } else if (file.type.startsWith("video/")) {
+            preview.innerHTML = `
+              <div class="relative">
+                <video src="${data.url}" controls class="h-32 w-full rounded-lg">
+                  <source src="${data.url}" type="${file.type}">
+                </video>
+                <button type="button" onclick="removeUploadedFile()" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            `;
+          }
+          
+          // Hidden input'a path kaydet
+          hiddenPath.value = data.path;
+        } else {
+          preview.innerHTML = `<p class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Hata: ${data.error}</p>`;
+        }
+      })
+      .catch(error => {
+        console.error("Upload error:", error);
+        preview.innerHTML = '<p class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Yükleme başarısız!</p>';
+      })
+      .finally(() => {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "Yükle";
+      });
+    });
+  }
+});
+
+function removeUploadedFile() {
+  document.getElementById("ajaxTopicPreview").innerHTML = "";
+  document.getElementById("uploadedTopicFilePath").value = "";
+  document.getElementById("ajaxTopicFile").value = "";
+}
+</script>
 {% endblock %}
