@@ -8,8 +8,12 @@ from .views import (
     edit_topic, edit_comment, reply_comment, trash_bin, admin_trash_bin,
     category_list, search_topics, topics_by_tag, notifications_view,
     mark_all_notifications_read, read_notification, recent_activity_view,
-    favorite_topics_view, followed_tags_view, my_topics_view, toggle_favorite_topic,mark_solution
-)
+    favorite_topics_view, followed_tags_view, my_topics_view, toggle_favorite_topic, mark_solution,
+    send_to_fastapi
+    )
+from django.shortcuts import render
+def upload_page(request):
+    return render(request, "send_image.html")
 
 urlpatterns = [
     path('', home, name='home'),
@@ -62,5 +66,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path("upload/", ajax_file_upload, name="ajax_file_upload"),
+    
+    path("process-image/", send_to_fastapi, name="send_to_fastapi")
 ]
 

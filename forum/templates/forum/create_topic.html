@@ -71,28 +71,63 @@
         <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
           <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
             <i class="fas fa-image mr-2 text-accent-600"></i>
-            Medya Dosyaları
+            HairFastGAN
           </label>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- AJAX File Input -->
+          
+          <!-- Multiple File Upload Section -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <!-- Upload 1 -->
             <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary-400 transition-colors">
               <label class="block text-xs font-medium text-gray-600 mb-2 flex items-center">
-                <i class="fas fa-upload mr-2 text-primary-500"></i>Dosya Seç
+                <i class="fas fa-upload mr-2 text-primary-500"></i>Source
               </label>
-              <input type="file" id="ajaxTopicFile" class="w-full text-sm text-gray-500" accept="image/*,video/*">
-              <button type="button" id="ajaxTopicUploadBtn"
-                      class="mt-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Yükle
-              </button>
-              <div id="ajaxTopicPreview" class="mt-3"></div>
-              <!-- Hidden input, backend'e URL aktarır -->
-              <input type="hidden" name="uploaded_file_path" id="uploadedTopicFilePath">
+              <input type="file" id="ajaxTopicFile1" class="w-full text-sm text-gray-500" accept="image/*">
+              <div id="preview1" class="mt-2 text-center text-gray-400 text-xs">Görsel bekleniyor...</div>
+              <input type="hidden" name="uploaded_file_path1" id="uploadedTopicFilePath1">
+            </div>
+
+            <!-- Upload 2 -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary-400 transition-colors">
+              <label class="block text-xs font-medium text-gray-600 mb-2 flex items-center">
+                <i class="fas fa-upload mr-2 text-secondary-500"></i>Target Shape
+              </label>
+              <input type="file" id="ajaxTopicFile2" class="w-full text-sm text-gray-500" accept="image/*">
+              <div id="preview2" class="mt-2 text-center text-gray-400 text-xs">Görsel bekleniyor...</div>
+              <input type="hidden" name="uploaded_file_path2" id="uploadedTopicFilePath2">
+            </div>
+
+            <!-- Upload 3 -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary-400 transition-colors">
+              <label class="block text-xs font-medium text-gray-600 mb-2 flex items-center">
+                <i class="fas fa-upload mr-2 text-accent-500"></i>Target Color
+              </label>
+              <input type="file" id="ajaxTopicFile3" class="w-full text-sm text-gray-500" accept="image/*">
+              <div id="preview3" class="mt-2 text-center text-gray-400 text-xs">Görsel bekleniyor...</div>
+              <input type="hidden" name="uploaded_file_path3" id="uploadedTopicFilePath3">
             </div>
           </div>
 
-          <p class="text-xs text-gray-500 mt-2">
+          <!-- Process Button -->
+          <div class="text-center mb-4">
+            <button type="button" id="processImagesBtn"
+                    class="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600 font-semibold transition-all duration-300">
+              <i class="fas fa-magic mr-2"></i>Run
+            </button>
+          </div>
+
+          <!-- Processing Result -->
+          <div class="border-2 border-gray-200 rounded-lg p-6">
+            <h4 class="text-sm font-semibold text-gray-700 mb-4 flex items-center">
+              <i class="fas fa-star mr-2 text-yellow-500"></i>Generated Image
+            </h4>
+            <div id="processedImageResult" class="min-h-48 flex items-center justify-center text-gray-400 bg-gray-50 rounded-lg">
+              <span class="text-sm">3 görsel yükleyip "Run" butonuna basın...</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-500 mt-4">
             <i class="fas fa-info-circle mr-1"></i>
-            Desteklenen formatlar: JPG, PNG, GIF (fotoğraf) | MP4, WebM (video) | Max 10MB
+            Desteklenen formatlar: JPG, PNG, GIF | Max 10MB 
           </p>
         </div>
       </div>
@@ -164,7 +199,7 @@
             </li>
             <li class="flex items-start">
               <i class="fas fa-check-circle mr-2 mt-0.5 text-accent-500"></i>
-              Medya dosyaları konuyu desteklesin
+              Yüklenen görsel otomatik işlenecek
             </li>
           </ul>
         </div>
@@ -191,80 +226,177 @@ function getCookie(name) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  const fileInput = document.getElementById("ajaxTopicFile");
-  const uploadBtn = document.getElementById("ajaxTopicUploadBtn");
-  const preview = document.getElementById("ajaxTopicPreview");
-  const hiddenPath = document.getElementById("uploadedTopicFilePath");
+  const processBtn = document.getElementById("processImagesBtn");
+  const processedResult = document.getElementById("processedImageResult");
+  const uploadedFiles = {};
 
-  if (uploadBtn) {
-    uploadBtn.addEventListener("click", function () {
-      const file = fileInput.files[0];
-      if (!file) {
-        alert("Lütfen dosya seçin!");
+  // Handle file uploads for each input
+  for (let i = 1; i <= 3; i++) {
+    const fileInput = document.getElementById(`ajaxTopicFile${i}`);
+    const preview = document.getElementById(`preview${i}`);
+    const hiddenPath = document.getElementById(`uploadedTopicFilePath${i}`);
+
+    fileInput.addEventListener("change", async function() {
+      const file = this.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        alert("Lütfen sadece görsel dosyası seçin!");
         return;
       }
 
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // Loading indicator
-      preview.innerHTML = '<p class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Yükleniyor...</p>';
-      uploadBtn.disabled = true;
-      uploadBtn.textContent = "Yükleniyor...";
-
-      fetch("{% url 'ajax_file_upload' %}", {
-        method: "POST",
-        body: formData,
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // Preview göster
-          if (file.type.startsWith("image/")) {
-            preview.innerHTML = `
-              <div class="relative">
-                <img src="${data.url}" class="h-32 w-full object-cover rounded-lg">
-                <button type="button" onclick="removeUploadedFile()" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            `;
-          } else if (file.type.startsWith("video/")) {
-            preview.innerHTML = `
-              <div class="relative">
-                <video src="${data.url}" controls class="h-32 w-full rounded-lg">
-                  <source src="${data.url}" type="${file.type}">
-                </video>
-                <button type="button" onclick="removeUploadedFile()" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            `;
-          }
-          
-          // Hidden input'a path kaydet
-          hiddenPath.value = data.path;
-        } else {
-          preview.innerHTML = `<p class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Hata: ${data.error}</p>`;
-        }
-      })
-      .catch(error => {
-        console.error("Upload error:", error);
-        preview.innerHTML = '<p class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Yükleme başarısız!</p>';
-      })
-      .finally(() => {
-        uploadBtn.disabled = false;
-        uploadBtn.textContent = "Yükle";
-      });
+      try {
+        // Upload to Django
+        await uploadToDjango(file, i, preview, hiddenPath);
+        uploadedFiles[i] = file;
+        
+        // Check if all files are uploaded
+        updateProcessButtonState();
+      } catch (error) {
+        console.error(`Görsel ${i} yükleme hatası:`, error);
+        preview.innerHTML = '<span class="text-red-600 text-xs">Hata!</span>';
+      }
     });
   }
+
+  // Process images when button is clicked
+  if (processBtn) {
+    processBtn.addEventListener("click", async function() {
+      const fileCount = Object.keys(uploadedFiles).length;
+      if (fileCount !== 3) {
+        alert("Lütfen 3 görsel de yükleyin!");
+        return;
+      }
+
+      try {
+        await sendToFastAPI();
+      } catch (error) {
+        console.error("İşlem hatası:", error);
+        processedResult.innerHTML = '<p class="text-red-600 text-sm"><i class="fas fa-exclamation-triangle mr-2"></i>İşlem başarısız!</p>';
+      }
+    });
+  }
+
+  function updateProcessButtonState() {
+    const fileCount = Object.keys(uploadedFiles).length;
+    if (fileCount === 3) {
+      processBtn.disabled = false;
+      processBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Run';
+      processBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      processBtn.disabled = true;
+      processBtn.innerHTML = `<i class="fas fa-upload mr-2"></i>${fileCount}/3 Görsel Yüklendi`;
+      processBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  async function uploadToDjango(file, index, preview, hiddenPath) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    preview.innerHTML = '<span class="text-blue-600 text-xs"><i class="fas fa-spinner fa-spin mr-1"></i>Yükleniyor...</span>';
+
+    const response = await fetch("{% url 'ajax_file_upload' %}", {
+      method: "POST",
+      body: formData,
+      headers: { "X-CSRFToken": getCookie("csrftoken") }
+    });
+
+    const data = await response.json();
+    
+    if (data.success) {
+      preview.innerHTML = `
+        <img src="${data.url}" class="w-full h-16 object-cover rounded mt-1" alt="Görsel ${index}">
+        <button type="button" onclick="removeFile(${index})" class="text-red-500 text-xs mt-1 hover:text-red-700">
+          <i class="fas fa-times mr-1"></i>Kaldır
+        </button>
+      `;
+      hiddenPath.value = data.path;
+    } else {
+      throw new Error(data.error || "Django upload failed");
+    }
+  }
+
+  async function sendToFastAPI() {
+    processedResult.innerHTML = '<div class="text-center"><i class="fas fa-magic text-4xl text-blue-500 mb-4"></i><p class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Görseller işleniyor...</p></div>';
+    processBtn.disabled = true;
+    processBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>İşleniyor...';
+
+    const formData = new FormData();
+    for (let i = 1; i <= 3; i++) {
+      if (uploadedFiles[i]) {
+        formData.append(`image${i}`, uploadedFiles[i]);
+      }
+    }
+
+    const response = await fetch("{% url 'send_to_fastapi' %}", {
+      method: "POST",
+      body: formData,
+      headers: { "X-CSRFToken": getCookie("csrftoken") }
+    });
+
+    if (response.ok) {
+      // Check if response is actually an image
+      const contentType = response.headers.get('content-type');
+      console.log('Response content-type:', contentType);
+      
+      if (contentType && contentType.startsWith('image/')) {
+        const blob = await response.blob();
+        const imgUrl = URL.createObjectURL(blob);
+        console.log('Created blob URL:', imgUrl);
+        
+        processedResult.innerHTML = `
+          <div class="text-center">
+            <img src="${imgUrl}" class="max-w-full h-auto rounded-lg shadow-lg mx-auto" alt="İşlenmiş görsel" 
+                 onload="console.log('Image loaded successfully')" 
+                 onerror="console.error('Image failed to load')">
+            <div class="mt-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg inline-block">
+              <i class="fas fa-check mr-2"></i>3 görsel başarıyla işlendi!
+            </div>
+          </div>
+        `;
+      } else {
+        // Response might be JSON error instead of image
+        const text = await response.text();
+        console.error('Unexpected response type:', text);
+        throw new Error('Expected image response but got: ' + contentType);
+      }
+    } else {
+      const errorText = await response.text();
+      console.error('HTTP Error:', response.status, errorText);
+      throw new Error(`FastAPI error: ${response.status} - ${errorText}`);
+    }
+
+    // Reset button
+    processBtn.disabled = false;
+    updateProcessButtonState();
+  }
+
+  // Initial button state
+  updateProcessButtonState();
 });
 
-function removeUploadedFile() {
-  document.getElementById("ajaxTopicPreview").innerHTML = "";
-  document.getElementById("uploadedTopicFilePath").value = "";
-  document.getElementById("ajaxTopicFile").value = "";
+function removeFile(index) {
+  document.getElementById(`preview${index}`).innerHTML = '<span class="text-gray-400 text-xs">Görsel bekleniyor...</span>';
+  document.getElementById(`uploadedTopicFilePath${index}`).value = "";
+  document.getElementById(`ajaxTopicFile${index}`).value = "";
+  
+  // Remove from uploadedFiles object
+  const uploadedFiles = window.uploadedFiles || {};
+  delete uploadedFiles[index];
+  
+  // Update button state
+  const fileCount = Object.keys(uploadedFiles).length;
+  const processBtn = document.getElementById("processImagesBtn");
+  if (fileCount === 3) {
+    processBtn.disabled = false;
+    processBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Görselleri İşle';
+    processBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+  } else {
+    processBtn.disabled = true;
+    processBtn.innerHTML = `<i class="fas fa-upload mr-2"></i>${fileCount}/3 Görsel Yüklendi`;
+    processBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  }
 }
 </script>
 {% endblock %}

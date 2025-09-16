@@ -7,7 +7,7 @@
   const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
   
   // Console log for debugging
-  console.log('🚀 Forum Base Loaded - Modern Sidebar System');
+  //console.log('🚀 Forum Base Loaded - Modern Sidebar System');
   
   // Sidebar açma/kapama fonksiyonları
   function openSidebar() {
@@ -70,15 +70,15 @@
   
   // Sidebar hover efektleri
   function initializeSidebarHoverEffects() {
-    console.log('🎯 Modern Sidebar hover efektleri başlatılıyor...');
+    //console.log('🎯 Modern Sidebar hover efektleri başlatılıyor...');
     
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
-    console.log(`📋 ${sidebarLinks.length} sidebar link bulundu`);
+    //console.log(`📋 ${sidebarLinks.length} sidebar link bulundu`);
     
     sidebarLinks.forEach((link, index) => {
       // Her link için hover event'leri ekle
       link.addEventListener('mouseenter', function(e) {
-        console.log(`🖱️ Link ${index + 1} hover başladı:`, this.textContent.trim());
+        //console.log(`🖱️ Link ${index + 1} hover başladı:`, this.textContent.trim());
         
         // Force CSS properties with JavaScript
         this.style.setProperty('transform', 'translateX(15px)', 'important');
@@ -92,7 +92,7 @@
         if (icon) {
           icon.style.setProperty('transform', 'scale(1.3) rotate(5deg)', 'important');
           icon.style.setProperty('color', '#4a8db7', 'important');
-          console.log(`🎨 Icon ${index + 1} efekt uygulandı`);
+          //console.log(`🎨 Icon ${index + 1} efekt uygulandı`);
         }
         
         // Text efekti
@@ -100,12 +100,12 @@
         if (text) {
           text.style.setProperty('font-weight', '600', 'important');
           text.style.setProperty('color', '#3b7197', 'important');
-          console.log(`📝 Text ${index + 1} efekt uygulandı`);
+          //console.log(`📝 Text ${index + 1} efekt uygulandı`);
         }
       });
       
       link.addEventListener('mouseleave', function(e) {
-        console.log(`🖱️ Link ${index + 1} hover bitti`);
+        //console.log(`🖱️ Link ${index + 1} hover bitti`);
         
         // Reset all styles
         if (!this.classList.contains('active')) {
@@ -133,17 +133,17 @@
       
       // Click event ile test
       link.addEventListener('click', function(e) {
-        console.log(`🔗 Link ${index + 1} tıklandı:`, this.href);
+        //console.log(`🔗 Link ${index + 1} tıklandı:`, this.href);
       });
       
       // Focus events
       link.addEventListener('focus', function(e) {
-        console.log(`🎯 Link ${index + 1} focus aldı`);
+        //console.log(`🎯 Link ${index + 1} focus aldı`);
         this.dispatchEvent(new Event('mouseenter'));
       });
       
       link.addEventListener('blur', function(e) {
-        console.log(`🎯 Link ${index + 1} focus kaybetti`);
+        //console.log(`🎯 Link ${index + 1} focus kaybetti`);
         this.dispatchEvent(new Event('mouseleave'));
       });
     });
@@ -157,7 +157,7 @@
       });
     });
     
-    console.log('✅ Modern Sidebar hover efektleri başarıyla yüklendi!');
+    //console.log('✅ Modern Sidebar hover efektleri başarıyla yüklendi!');
   }
   
   // Event listener'ları ekle
@@ -232,7 +232,7 @@
     const scrollableContent = sidebar?.querySelector('.custom-scrollbar');
     if (scrollableContent) {
       scrollableContent.style.scrollBehavior = 'smooth';
-      console.log('✅ Sidebar smooth scroll aktif');
+      //console.log('✅ Sidebar smooth scroll aktif');
     }
   }
   
@@ -254,7 +254,7 @@
   
   // DOM yüklendiğinde hover efektlerini başlat
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌟 DOM yüklendi - Modern Sidebar başlatılıyor...');
+    //console.log('🌟 DOM yüklendi - Modern Sidebar başlatılıyor...');
     initializeSidebarHoverEffects();
     initSmoothScroll();
     
@@ -266,14 +266,14 @@
     document.addEventListener('mousemove', function(e) {
       mouseTestCount++;
       if (mouseTestCount % 200 === 0) {
-        console.log(`🖱️ Mouse performansı: (${e.clientX}, ${e.clientY}) - ${mouseTestCount} hareket`);
+        //console.log(`🖱️ Mouse performansı: (${e.clientX}, ${e.clientY}) - ${mouseTestCount} hareket`);
       }
     });
   });
   
   // Sayfa yüklendiğinde de çalıştır (backup)
   window.addEventListener('load', function() {
-    console.log('🚀 Sayfa tamamen yüklendi - Backup sistem çalıştırılıyor...');
+    //console.log('🚀 Sayfa tamamen yüklendi - Backup sistem çalıştırılıyor...');
     setTimeout(() => {
       initializeSidebarHoverEffects();
       initSmoothScroll();
@@ -290,13 +290,13 @@
       } else {
         toggleSidebar();
       }
-      console.log('⌨️ Sidebar klavye kısayolu kullanıldı');
+      //console.log('⌨️ Sidebar klavye kısayolu kullanıldı');
     }
     
     // Ctrl + H: Hover test
     if (e.ctrlKey && e.key === 'h') {
       e.preventDefault();
-      console.log('🔥 Hover test başlatıldı!');
+      //console.log('🔥 Hover test başlatıldı!');
       const testLink = document.querySelector('.sidebar-link');
       if (testLink) {
         testLink.style.border = '2px solid red';
@@ -326,19 +326,14 @@
           }
         });
       });
-      console.log('♿ Accessibility focus management aktif');
+      //console.log('♿ Accessibility focus management aktif');
     }
   }
   
   // Initialize focus management
   setTimeout(manageFocus, 500);
   
-  console.log('✨ Modern Forum Sidebar System tamamen yüklendi!');
-  console.log('📝 Klavye kısayolları: Ctrl+B (sidebar), Ctrl+H (hover test)');
-  console.log('🎯 Özellikler: Scroll, Hover, Focus, Notifications, Accessibility');
-</script>1)';
-      });
-      
-      item.addEventListener('mouseleave', function() {
-        this.style.transform = 'scale(1)';
-        this.style.background = 'rgba(59, 113, 151, 0.
+  //console.log('✨ Modern Forum Sidebar System tamamen yüklendi!');
+  //console.log('📝 Klavye kısayolları: Ctrl+B (sidebar), Ctrl+H (hover test)');
+  //console.log('🎯 Özellikler: Scroll, Hover, Focus, Notifications, Accessibility');
+</script>
