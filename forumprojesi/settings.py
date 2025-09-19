@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'channels',
     'widget_tweaks',
+    'captcha',
 ]
 
 # Channels backend olarak Redis kullanacağız
@@ -193,3 +194,6 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,  # Basic Auth'u pasif hale getirir
 }
+
+RECAPTCHA_PUBLIC_KEY = "6LcB880rAAAAAEbdHlZ_TOEnYfaS9Xba4Vy9g263"
+RECAPTCHA_PRIVATE_KEY = "6LcB880rAAAAAEeW8zfV_XH612gy7ZSkRPDvpnd5"

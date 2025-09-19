@@ -8,7 +8,7 @@ from .views import (
     edit_topic, edit_comment, reply_comment, trash_bin, admin_trash_bin,
     category_list, search_topics, topics_by_tag, notifications_view,
     mark_all_notifications_read, read_notification, recent_activity_view,
-    favorite_topics_view, followed_tags_view, my_topics_view, toggle_favorite_topic,mark_solution
+    favorite_topics_view, followed_tags_view, my_topics_view, toggle_favorite_topic,mark_solution, toggle_topic_lock, delete_topic_media
 )
 
 urlpatterns = [
@@ -24,6 +24,8 @@ urlpatterns = [
     path('restore/topic/<slug:slug>/', restore_topic, name='restore_topic'),
     path('topics/<slug:slug>/comment/', create_comment, name='create_comment'),
     path('topics/<slug:slug>/favorite/', toggle_favorite_topic, name='toggle_favorite_topic'),
+    path('topic/<slug:slug>/toggle-lock/', toggle_topic_lock, name='toggle_topic_lock'),
+    path("topic/<int:topic_id>/delete-media/", delete_topic_media, name="delete_topic_media"),
 
     # Comments URLs - views ile uyumlu
     path('comments/<int:comment_id>/edit/', edit_comment, name='edit_comment'),

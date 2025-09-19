@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import UserProfile
-
+from captcha.fields import ReCaptchaField
+from captcha.widgets import ReCaptchaV2Checkbox
 
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField(required=True)
@@ -23,10 +24,10 @@ class ProfileUpdateForm(forms.ModelForm):
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Zorunlu. Geçerli bir e-posta girin.")
-
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox) 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        fields = ['username', 'email', 'password1', 'password2', 'captcha']
 
     def save(self, commit=True):
         user = super().save(commit=False)

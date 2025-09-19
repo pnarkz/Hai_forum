@@ -1,6 +1,26 @@
+{% load static %}
+{% load forum_tags %}
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}ForumApp{% endblock %}</title>
+  <!-- Temel SEO -->
+  <meta name="description" content="AI Forum - Yapay zeka, teknoloji, programlama ve daha fazlası üzerine tartışma platformu.">
+  <meta name="keywords" content="AI forum, yapay zeka, teknoloji, python, machine learning, yazılım forumu, django">
+  <meta name="author" content="AI Forum">
+  <link rel="canonical" href="https://www.aiforum.com/">
+  <!-- Open Graph -->
+  <meta property="og:title" content="AI Forum - Yapay Zeka ve Teknoloji Forumu">
+  <meta property="og:description" content="Yapay zeka, programlama ve teknoloji üzerine tartışmalar. Bilgi paylaş, soru sor, toplulukla tanış.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.aiforum.com/">
+  <meta property="og:image" content="{% static 'images/preview.png' %}">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI Forum - Yapay Zeka ve Teknoloji Forumu">
+  <meta name="twitter:description" content="Yapay zeka, programlama ve teknoloji üzerine tartışmalar. Katıl, öğren, paylaş.">
+  <meta name="twitter:image" content="{% static 'images/preview.png' %}">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- Fontlar -->

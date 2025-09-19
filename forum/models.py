@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.text import slugify
 from django.urls import reverse
-
+import uuid
 # Ortak timestamp modeli
 class TimeStampedModel(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
@@ -47,23 +47,24 @@ class Topic(TimeStampedModel):
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     tags = TaggableManager(blank=True)
-
     image = models.ImageField(upload_to='uploads/images/', null=True, blank=True)
     video = models.FileField(upload_to='uploads/videos/', null=True, blank=True)
-
     views = models.PositiveIntegerField(default=0)
     favorited_by = models.ManyToManyField(User, related_name='favorited_topics', blank=True)
     slug = models.SlugField(unique=True, blank=True)
     is_solved = models.BooleanField(default=False)
     solved_at = models.DateTimeField(null=True, blank=True)
     is_edited = models.BooleanField(default=False)
-    
+    is_locked = models.BooleanField(default=False)
+
     def __str__(self):
         return self.title
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            base_slug = slugify(self.title)
+            unique_id = uuid.uuid4().hex[:8]  # 8 karakterlik uuid
+            self.slug = f"{base_slug}-{unique_id}"
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -109,6 +110,7 @@ class Notification(models.Model):
         ('comment', 'Yorum'),
         ('reply', 'Cevap'),
         ('like', 'Beğeni'),
+        ('solution', 'Çözüm'), 
     )
 
     recipient = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
@@ -125,7 +127,6 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
-
 
 class ActivityLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% include 'forum/sidebar.html' %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto px-4 py-6">
@@ -9,6 +8,12 @@
       <h1 class="text-2xl font-bold text-transparent bg-clip-text gradient-bg flex items-center">
         <i class="fas fa-comment-alt mr-3 text-secondary-600"></i>
         Yeni Yorum
+        {% if topic.is_locked %}
+          <span class="ml-3 text-red-600 text-sm font-normal">
+            <i class="fas fa-lock"></i>
+            Kilitli Konu
+          </span>
+        {% endif %}
       </h1>
       <a href="{% url 'topic_detail' topic.slug %}" class="text-gray-600 hover:text-primary-600 transition-colors flex items-center">
         <i class="fas fa-arrow-left mr-2"></i>
@@ -17,10 +22,22 @@
     </div>
     
     <!-- Topic Info -->
-    <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 {% if topic.is_locked %}border-l-4 border-red-500{% endif %}">
       <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
         <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>
         {{ topic.title }}
+        {% if topic.is_locked %}
+          <span class="ml-2 px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">
+            <i class="fas fa-lock mr-1"></i>
+            Kilitli
+          </span>
+        {% endif %}
+        {% if topic.is_solved %}
+          <span class="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+            <i class="fas fa-check-circle mr-1"></i>
+            Çözüldü
+          </span>
+        {% endif %}
       </h3>
       <p class="text-sm text-gray-600 line-clamp-2">{{ topic.content|truncatewords:30 }}</p>
       <div class="flex items-center text-xs text-gray-500 mt-2 space-x-3">
@@ -34,175 +51,183 @@
     </div>
   </div>
 
-  <!-- Form Errors -->
-  {% if form.non_field_errors %}
+  <!-- Locked Topic Warning -->
+  {% if topic.is_locked %}
     <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
-      {% for error in form.non_field_errors %}
-        <div class="flex items-center text-red-700">
-          <i class="fas fa-exclamation-circle mr-2"></i>
-          {{ error }}
+      <div class="flex items-center text-red-700">
+        <i class="fas fa-lock mr-2"></i>
+        <div>
+          <p class="font-semibold">Bu konu kilitlenmiştir</p>
+          <p class="text-sm mt-1">Kilitli konulara yorum yapılamaz. Bu sayfaya yanlışlıkla yönlendirildiniz.</p>
         </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <!-- Comment Form -->
-  <form method="post" action="{% url 'create_comment' topic.slug %}" enctype="multipart/form-data" class="space-y-6" id="commentForm">
-    {% csrf_token %}
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Main Content -->
-      <div class="lg:col-span-2 space-y-6">
-        
-        <!-- Comment Content -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
-          <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
-            <i class="fas fa-edit mr-2 text-secondary-600"></i>
-            Yorumunuz
-          </label>
-          <textarea 
-            name="content" 
-            rows="8"
-            placeholder="Ne düşünüyorsunuz? Yorumunuzu buraya yazın..."
-            required
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none">{{ form.content.value|default:"" }}</textarea>
-          
-          {% if form.content.errors %}
-            <div class="mt-2 text-sm text-red-600 flex items-center">
-              <i class="fas fa-exclamation-triangle mr-2"></i>
-              {{ form.content.errors.0 }}
-            </div>
-          {% endif %}
-        </div>
-        <!-- Media Upload -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
-          <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
-            <i class="fas fa-image mr-2 text-accent-600"></i>
-            Medya Ekle (İsteğe bağlı)
-          </label>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- AJAX Upload Box -->
-          <div class="mt-6">
-            <label class="block text-xs font-medium text-gray-600 mb-2">Hızlı Yükle (AJAX)</label>
-            <input type="file" id="ajaxCommentFile" class="mb-2">
-            <button type="button" id="ajaxCommentUploadBtn"
-                    class="px-3 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">
-              Yükle
-            </button>
-
-            <div id="ajaxCommentPreview" class="mt-3"></div>
-            <!-- form submit sırasında backend'e gidecek -->
-            <input type="hidden" name="uploaded_file_path" id="uploadedCommentFilePath">
-          </div>
-
-          <div class="mt-3 bg-blue-50 rounded-lg p-3">
-            <p class="text-xs text-blue-700 flex items-start">
-              <i class="fas fa-info-circle mr-2 mt-0.5 text-blue-500"></i>
-              <span>
-                <strong>Medya dosyaları yorumunuzu destekleyebilir:</strong><br>
-                • Fotoğraf: JPG, PNG, GIF (Max 10MB)<br>
-                • Video: MP4, WebM (Max 50MB)<br>
-                • AJAX yükleme ile dosya anında yüklenecek ve önizlemesi görünecek.
-              </span>
-            </p>
-          </div>
-        </div>
-
-      <!-- Sidebar -->
-      <div class="space-y-6">
-        
-        <!-- Actions -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
-          <div class="space-y-3">
-            <button type="submit" class="w-full gradient-bg text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center" id="submitBtn">
-              <i class="fas fa-paper-plane mr-2"></i>
-              <span id="submitText">Yorumu Gönder</span>
-            </button>
-            <a href="{% url 'topic_detail' topic.slug %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
-              <i class="fas fa-times mr-2"></i>
-              İptal Et
-            </a>
-          </div>
-        </div>
-
-        <!-- Comment Guidelines -->
-        <div class="bg-gradient-to-r from-green-50 to-emerald-100 rounded-xl border border-green-200/50 p-6">
-          <h3 class="text-sm font-semibold text-green-800 mb-3 flex items-center">
-            <i class="fas fa-comments mr-2"></i>
-            Yorum Kuralları
-          </h3>
-          <ul class="text-xs text-green-700 space-y-2">
-            <li class="flex items-start">
-              <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
-              Konuyla ilgili ve yapıcı yorumlar yazın
-            </li>
-            <li class="flex items-start">
-              <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
-              Saygılı bir dil kullanın
-            </li>
-            <li class="flex items-start">
-              <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
-              Spam ve reklam içeriği paylaşmayın
-            </li>
-            <li class="flex items-start">
-              <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
-              Medya dosyaları uygun içerikte olsun
-            </li>
-          </ul>
-        </div>
-
-        <!-- Recent Comments -->
-        {% if topic.comments.all|slice:":3" %}
-        <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
-          <h3 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-            <i class="fas fa-clock mr-2 text-blue-500"></i>
-            Son Yorumlar
-          </h3>
-          <div class="space-y-3">
-            {% for comment in topic.comments.all|slice:":3" %}
-            <div class="border-l-2 border-gray-200 pl-3 py-2">
-              <div class="flex items-center space-x-2 mb-1">
-                <div class="w-5 h-5 rounded-full gradient-bg text-white flex items-center justify-center text-xs font-semibold">
-                  {{ comment.author.username|first|upper }}
-                </div>
-                <span class="text-xs font-medium text-gray-700">{{ comment.author.username }}</span>
-                <span class="text-xs text-gray-500">{{ comment.date_created|timesince }} önce</span>
-              </div>
-              <p class="text-xs text-gray-600 line-clamp-2">{{ comment.content|truncatewords:15 }}</p>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
       </div>
     </div>
-  </form>
+    
+    <!-- Redirect button for locked topics -->
+    <div class="text-center">
+      <a href="{% url 'topic_detail' topic.slug %}" 
+         class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Konuya Geri Dön
+      </a>
+    </div>
+  {% else %}
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+      <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
+        {% for error in form.non_field_errors %}
+          <div class="flex items-center text-red-700">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            {{ error }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Comment Form -->
+    <form method="post" action="{% url 'create_comment' topic.slug %}" enctype="multipart/form-data" class="space-y-6" id="commentForm">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Comment Content -->
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+            <label for="id_content" class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+              <i class="fas fa-edit mr-2 text-secondary-600"></i>
+              Yorumunuz
+            </label>
+            <textarea 
+              id="id_content"
+              name="content" 
+              rows="8"
+              placeholder="Ne düşünüyorsunuz? Yorumunuzu buraya yazın..."
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none">{{ form.content.value|default:"" }}</textarea>
+            {% if form.content.errors %}
+              <div class="mt-2 text-sm text-red-600 flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                {{ form.content.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+          
+          <!-- Media Upload -->
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+            <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+              <i class="fas fa-image mr-2 text-accent-600"></i>
+              Medya Ekle (İsteğe bağlı)
+            </label>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- AJAX Upload Box -->
+              <div class="mt-6">
+                <label class="block text-xs font-medium text-gray-600 mb-2">Hızlı Yükle (AJAX)</label>
+                <input type="file" id="ajaxCommentFile" class="mb-2">
+                <button type="button" id="ajaxCommentUploadBtn"
+                        class="px-3 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">
+                  Yükle
+                </button>
+
+                <div id="ajaxCommentPreview" class="mt-3"></div>
+                <!-- form submit sırasında backend'e gidecek -->
+                <input type="hidden" name="uploaded_file_path" id="uploadedCommentFilePath">
+              </div>
+
+              <div class="mt-3 bg-blue-50 rounded-lg p-3">
+                <p class="text-xs text-blue-700 flex items-start">
+                  <i class="fas fa-info-circle mr-2 mt-0.5 text-blue-500"></i>
+                  <span>
+                    <strong>Medya dosyaları yorumunuzu destekleyebilir:</strong><br>
+                    • Fotoğraf: JPG, PNG, GIF (Max 10MB)<br>
+                    • Video: MP4, WebM (Max 50MB)<br>
+                    • AJAX yükleme ile dosya anında yüklenecek ve önizlemesi görünecek.
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+          
+          <!-- Actions -->
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+            <div class="space-y-3">
+              <button type="submit" class="w-full gradient-bg text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center" id="submitBtn">
+                <i class="fas fa-paper-plane mr-2"></i>
+                <span id="submitText">Yorumu Gönder</span>
+              </button>
+              <a href="{% url 'topic_detail' topic.slug %}" class="w-full block text-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center">
+                <i class="fas fa-times mr-2"></i>
+                İptal Et
+              </a>
+            </div>
+          </div>
+
+          <!-- Comment Guidelines -->
+          <div class="bg-gradient-to-r from-green-50 to-emerald-100 rounded-xl border border-green-200/50 p-6">
+            <h3 class="text-sm font-semibold text-green-800 mb-3 flex items-center">
+              <i class="fas fa-comments mr-2"></i>
+              Yorum Kuralları
+            </h3>
+            <ul class="text-xs text-green-700 space-y-2">
+              <li class="flex items-start">
+                <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
+                Konuyla ilgili ve yapıcı yorumlar yazın
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
+                Saygılı bir dil kullanın
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
+                Spam ve reklam içeriği paylaşmayın
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle mr-2 mt-0.5 text-green-500"></i>
+                Medya dosyaları uygun içerikte olsun
+              </li>
+            </ul>
+          </div>
+
+          <!-- Recent Comments -->
+          {% if recent_comments %}
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 card-shadow p-6">
+            <h3 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+              <i class="fas fa-clock mr-2 text-blue-500"></i>
+              Son Yorumlar
+            </h3>
+            <div class="space-y-3">
+              {% for comment in recent_comments %}
+              <div class="border-l-2 border-gray-200 pl-3 py-2">
+                <div class="flex items-center space-x-2 mb-1">
+                  <div class="w-5 h-5 rounded-full gradient-bg text-white flex items-center justify-center text-xs font-semibold">
+                    {{ comment.author.username|first|upper }}
+                  </div>
+                  <span class="text-xs font-medium text-gray-700">{{ comment.author.username }}</span>
+                  <span class="text-xs text-gray-500">{{ comment.date_created|timesince }} önce</span>
+                  {% if comment.is_solution %}
+                    <span class="text-xs text-green-600">
+                      <i class="fas fa-check-circle"></i>
+                    </span>
+                  {% endif %}
+                </div>
+                <p class="text-xs text-gray-600 line-clamp-2">{{ comment.content|truncatewords:15 }}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  {% endif %}
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-
-    // Form submission
-    const form = document.getElementById('commentForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const submitText = document.getElementById('submitText');
-    
-    form.addEventListener('submit', function() {
-        submitBtn.disabled = true;
-        submitText.textContent = 'Gönderiliyor...';
-        submitBtn.querySelector('i').className = 'fas fa-spinner fa-spin mr-2';
-    });
-    
-    // Auto-resize textarea
-    const textarea = document.querySelector('textarea[name="content"]');
-    if (textarea) {
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 300) + 'px';
-        });
-    }
-});
 // CSRF helper
 function getCookie(name) {
   let cookieValue = null;
@@ -219,34 +244,64 @@ function getCookie(name) {
   return cookieValue;
 }
 
-document.getElementById("ajaxCommentUploadBtn").addEventListener("click", function () {
-  const fileInput = document.getElementById("ajaxCommentFile");
-  const file = fileInput.files[0];
-  if (!file) return alert("Lütfen dosya seçin!");
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("type", "comment"); // backend'de ayırt etmek için
-
-  fetch("{% url 'ajax_file_upload' %}", {
-    method: "POST",
-    body: formData,
-    headers: { "X-CSRFToken": getCookie("csrftoken") }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      document.getElementById("ajaxCommentPreview").innerHTML =
-        file.type.startsWith("image/")
-          ? `<img src="${data.url}" class="h-32 rounded">`
-          : `<video src="${data.url}" controls class="h-32 rounded"></video>`;
-      document.getElementById("uploadedCommentFilePath").value = data.path;
-    } else {
-      alert("Yükleme hatası: " + data.error);
+document.addEventListener('DOMContentLoaded', function() {
+    // Only run form scripts if topic is not locked
+    {% if not topic.is_locked %}
+    // Form submission
+    const form = document.getElementById('commentForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    
+    if (form && submitBtn && submitText) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitText.textContent = 'Gönderiliyor...';
+            submitBtn.querySelector('i').className = 'fas fa-spinner fa-spin mr-2';
+        });
     }
-  })
-  .catch(err => console.error("Upload error", err));
-});
+    
+    // Auto-resize textarea
+    const textarea = document.querySelector('textarea[name="content"]');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 300) + 'px';
+        });
+    }
 
+    // AJAX Upload functionality
+    const uploadBtn = document.getElementById("ajaxCommentUploadBtn");
+    if (uploadBtn) {
+        uploadBtn.addEventListener("click", function () {
+            const fileInput = document.getElementById("ajaxCommentFile");
+            const file = fileInput.files[0];
+            if (!file) return alert("Lütfen dosya seçin!");
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("type", "comment");
+
+            fetch("{% url 'ajax_file_upload' %}", {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": getCookie("csrftoken") }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("ajaxCommentPreview").innerHTML =
+                        file.type.startsWith("image/")
+                            ? `<img src="${data.url}" class="h-32 rounded">`
+                            : `<video src="${data.url}" controls class="h-32 rounded"></video>`;
+                    document.getElementById("uploadedCommentFilePath").value = data.path;
+                } else {
+                    alert("Yükleme hatası: " + data.error);
+                }
+            })
+            .catch(err => console.error("Upload error", err));
+        });
+    }
+    {% endif %}
+});
 </script>
 {% endblock %}

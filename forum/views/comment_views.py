@@ -21,6 +21,11 @@ import requests, os
 def create_comment(request, slug):
     topic = get_object_or_404(Topic, slug=slug, is_deleted=False)
 
+    # 🚨 Konu kilitli mi kontrol et
+    if topic.is_locked:
+        messages.error(request, "Bu konu kilitlenmiş. Yorum yapamazsınız.")
+        return redirect('topic_detail', slug=topic.slug)
+
     if request.method == 'POST':
         form = CommentForm(request.POST, request.FILES)
         if form.is_valid():
@@ -66,23 +71,51 @@ def create_comment(request, slug):
 
     return render(request, 'forum/create_comment.html', {'form': form, 'topic': topic})
 
-
-
 @login_required
 def edit_comment(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
+    topic = comment.topic
 
+    # Yetki kontrolü
     if request.user != comment.author and not request.user.is_staff:
         messages.error(request, "You are not authorized to edit this comment.")
-        return redirect('topic_detail', slug=comment.topic.slug)
+        return redirect('topic_detail', slug=topic.slug)
+
+    # 🚨 Konu kilitli mi kontrol et
+    if topic.is_locked:
+        messages.error(request, "Bu konu kilitlenmiş. Yorum düzenleyemezsiniz.")
+        return redirect('topic_detail', slug=topic.slug)
 
     if request.method == 'POST':
         form = CommentForm(request.POST, request.FILES, instance=comment)
         if form.is_valid():
-            form.save()
+            comment = form.save(commit=False)
+
+            # 1. Öncelik: AJAX ile gelen hidden input (relative path)
+            uploaded_path = request.POST.get("uploaded_file_path")
+            if uploaded_path:
+                try:
+                    if uploaded_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                        comment.image.name = uploaded_path
+                        comment.video = None  # video varsa temizle
+                    elif uploaded_path.lower().endswith(('.mp4', '.webm')):
+                        comment.video.name = uploaded_path
+                        comment.image = None  # image varsa temizle
+                except Exception as e:
+                    print("AJAX upload error (edit_comment):", e)
+
+            # 2. Klasik form upload (fallback)
+            elif request.FILES.get("image"):
+                comment.image = request.FILES["image"]
+                comment.video = None
+            elif request.FILES.get("video"):
+                comment.video = request.FILES["video"]
+                comment.image = None
+
+            comment.save()
             log_activity(request.user, comment, "updated_comment")
             messages.success(request, "Comment updated successfully.")
-            return redirect('topic_detail', slug=comment.topic.slug)
+            return redirect('topic_detail', slug=topic.slug)
     else:
         form = CommentForm(instance=comment)
 
@@ -92,17 +125,24 @@ def edit_comment(request, comment_id):
 @login_required
 def delete_comment(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
+    topic = comment.topic
 
+    # Yetki kontrolü
     if request.user != comment.author and not request.user.is_staff:
         messages.error(request, "You are not authorized to delete this comment.")
-        return redirect('topic_detail', slug=comment.topic.slug)
+        return redirect('topic_detail', slug=topic.slug)
+
+    # 🚨 Kilitli konu kontrolü (sadece admin silebilir)
+    if topic.is_locked and not request.user.is_staff:
+        messages.error(request, "Bu konu kilitlenmiş. Sadece yöneticiler yorum silebilir.")
+        return redirect('topic_detail', slug=topic.slug)
 
     comment.is_deleted = True
     comment.deleted_at = timezone.now()
     comment.save()
     log_activity(request.user, comment, "deleted_comment")
     messages.success(request, "Comment moved to trash.")
-    return redirect('topic_detail', slug=comment.topic.slug)
+    return redirect('topic_detail', slug=topic.slug)
 
 
 @login_required
@@ -124,7 +164,10 @@ def restore_comment(request, comment_id):
 def toggle_comment_like(request, comment_id):
     """AJAX için JSON response döndüren like toggle"""
     comment = get_object_or_404(Comment, id=comment_id)
+    topic = comment.topic
     user = request.user
+
+    # 🔥 Beğeni kilitli konularda da serbest (zararsız)
 
     # Like durumunu kontrol et ve toggle yap
     if user in comment.likes.all():
@@ -140,12 +183,12 @@ def toggle_comment_like(request, comment_id):
             Notification.objects.create(
                 recipient=comment.author,
                 sender=user,
-                topic=comment.topic,
+                topic=topic,
                 comment=comment,
                 notification_type='like',
                 extra_data={
                     'message': f"{user.username} liked your comment.",
-                    'url': reverse('topic_detail', kwargs={'slug': comment.topic.slug})
+                    'url': reverse('topic_detail', kwargs={'slug': topic.slug})
                 }
             )
 
@@ -158,13 +201,18 @@ def toggle_comment_like(request, comment_id):
         })
     
     # Normal request ise redirect
-    return redirect('topic_detail', slug=comment.topic.slug)
+    return redirect('topic_detail', slug=topic.slug)
 
 
 @login_required
 def reply_comment(request, comment_id):
     parent = get_object_or_404(Comment, id=comment_id)
     topic = parent.topic
+
+    # 🚨 Konu kilitli mi kontrol et
+    if topic.is_locked:
+        messages.error(request, "Bu konu kilitlenmiş. Yanıt veremezsiniz.")
+        return redirect('topic_detail', slug=topic.slug)
 
     if request.method == 'POST':
         form = CommentForm(request.POST, request.FILES)
@@ -173,6 +221,21 @@ def reply_comment(request, comment_id):
             reply.topic = topic
             reply.author = request.user
             reply.parent = parent
+
+            # 1. Öncelik: AJAX ile gelen hidden input (relative path)
+            uploaded_path = request.POST.get("uploaded_file_path")
+            if uploaded_path:
+                if uploaded_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                    reply.image.name = uploaded_path
+                elif uploaded_path.lower().endswith(('.mp4', '.webm')):
+                    reply.video.name = uploaded_path
+
+            # 2. Klasik form upload (fallback)
+            elif request.FILES.get("image"):
+                reply.image = request.FILES["image"]
+            elif request.FILES.get("video"):
+                reply.video = request.FILES["video"]
+
             reply.save()
             log_activity(request.user, reply, "replied_comment")
 
@@ -202,6 +265,7 @@ def reply_comment(request, comment_id):
     })
 
 
+
 @login_required
 @require_POST
 def mark_solution(request, comment_id):
@@ -219,6 +283,16 @@ def mark_solution(request, comment_id):
         messages.error(request, "Only the topic author can mark a solution.")
         return redirect('topic_detail', slug=topic.slug)
     
+    # 🚨 Kilitli konu kontrolü - çözüm işaretleme yasak
+    if topic.is_locked:
+        if request.headers.get('Accept') == 'application/json':
+            return JsonResponse({
+                'success': False, 
+                'error': 'Bu konu kilitlenmiş, çözüm işaretlenemez.'
+            })
+        messages.error(request, "Bu konu kilitlenmiş, çözüm işaretlenemez.")
+        return redirect('topic_detail', slug=topic.slug)
+    
     # Topic zaten çözülmüşse
     if topic.is_solved:
         if request.headers.get('Accept') == 'application/json':
@@ -230,7 +304,6 @@ def mark_solution(request, comment_id):
         return redirect('topic_detail', slug=topic.slug)
     
     # Çözüm olarak işaretle
-    # Önce diğer çözümleri kaldır (güvenlik için)
     Comment.objects.filter(topic=topic, is_solution=True).update(is_solution=False)
     
     comment.is_solution = True

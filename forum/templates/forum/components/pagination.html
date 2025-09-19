@@ -1,40 +1,46 @@
 {% if page_obj.has_other_pages %}
-  <div class="text-sm text-gray-600 mb-3 text-center">
+  <!-- Sayfa Bilgisi -->
+  <div class="text-sm text-slate-600 mb-3 text-center">
     <p>
-      <span class="font-medium">{{ page_obj.start_index }}</span>
-      ile
-      <span class="font-medium">{{ page_obj.end_index }}</span>
+      <span class="font-semibold">{{ page_obj.start_index }}</span>
+      –
+      <span class="font-semibold">{{ page_obj.end_index }}</span>
       arası,
-      <span class="font-medium">{{ page_obj.paginator.count }}</span> sonuçtan
+      toplam
+      <span class="font-semibold">{{ page_obj.paginator.count }}</span> sonuç
     </p>
   </div>
 
-  <nav class="flex flex-wrap justify-center items-center space-x-2 border-t border-slate-200 bg-white/90 backdrop-blur-sm px-6 py-4 rounded-lg card-shadow">
+  <!-- Pagination -->
+  <nav class="flex flex-wrap justify-center items-center gap-2 border-t border-slate-200 bg-white/90 backdrop-blur-sm px-6 py-4 rounded-lg card-shadow"
+       role="navigation" aria-label="Sayfalandırma">
 
     <!-- Önceki -->
     {% if page_obj.has_previous %}
       <a href="?page={{ page_obj.previous_page_number }}"
-         class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
-        <i class="fas fa-chevron-left mr-1"></i> Önceki
+         class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 hover:border-blue-300 transition flex items-center">
+        <i class="fas fa-chevron-left mr-1 text-xs"></i>
+        Önceki
       </a>
     {% else %}
-      <span class="px-3 py-1 rounded-md border border-slate-300 bg-slate-50 text-slate-400 cursor-not-allowed">
-        <i class="fas fa-chevron-left mr-1"></i> Önceki
+      <span class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed flex items-center">
+        <i class="fas fa-chevron-left mr-1 text-xs"></i>
+        Önceki
       </span>
     {% endif %}
 
     <!-- Sayfa Numaraları -->
     {% for i in page_obj.paginator.page_range %}
       {% if i == page_obj.number %}
-        <span class="px-3 py-1 rounded-md bg-blue-600 text-white font-semibold">{{ i }}</span>
+        <span class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-sky-600 text-white font-semibold shadow-sm">{{ i }}</span>
       {% elif i >= page_obj.number|add:'-2' and i <= page_obj.number|add:'2' %}
         <a href="?page={{ i }}"
-           class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
+           class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 hover:border-blue-300 transition">
           {{ i }}
         </a>
       {% elif i == 1 or i == page_obj.paginator.num_pages %}
         <a href="?page={{ i }}"
-           class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
+           class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 hover:border-blue-300 transition">
           {{ i }}
         </a>
       {% elif i == page_obj.number|add:'-3' or i == page_obj.number|add:'3' %}
@@ -45,12 +51,14 @@
     <!-- Sonraki -->
     {% if page_obj.has_next %}
       <a href="?page={{ page_obj.next_page_number }}"
-         class="px-3 py-1 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 transition">
-        Sonraki <i class="fas fa-chevron-right ml-1"></i>
+         class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 hover:border-blue-300 transition flex items-center">
+        Sonraki
+        <i class="fas fa-chevron-right ml-1 text-xs"></i>
       </a>
     {% else %}
-      <span class="px-3 py-1 rounded-md border border-slate-300 bg-slate-50 text-slate-400 cursor-not-allowed">
-        Sonraki <i class="fas fa-chevron-right ml-1"></i>
+      <span class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed flex items-center">
+        Sonraki
+        <i class="fas fa-chevron-right ml-1 text-xs"></i>
       </span>
     {% endif %}
   </nav>

@@ -9,22 +9,12 @@
         AI Forum
       </a>
       
-      <div class="hidden md:flex space-x-6" role="navigation" aria-label="Üst menü">
-        <a href="{% url 'topic_list' %}" class="nav-link text-slate-700 hover:text-blue-600 flex items-center" 
-           aria-label="Tüm Konular" title="Tüm Konular">
-          <i class="fas fa-list mr-2" aria-hidden="true"></i>
-          Tüm Konular
-        </a>
-        <a href="{% url 'create_topic' %}" class="nav-link text-slate-700 hover:text-blue-500 flex items-center"
-           aria-label="Yeni Konu Oluştur" title="Yeni Konu Oluştur">
-          <i class="fas fa-plus mr-2" aria-hidden="true"></i>
-          Yeni Konu
-        </a>
-        <a href="{% url 'accounts:leaderboard' %}" class="nav-link text-slate-700 hover:text-blue-700 flex items-center"
-           aria-label="Lider Tablosu" title="Lider Tablosu">
-          <i class="fas fa-trophy mr-2" aria-hidden="true"></i>
-          Lider Tablosu
-        </a>
+      <div class="hidden md:flex space-x-4" role="navigation" aria-label="Üst menü">
+        {% include 'forum/components/button.html' with text='Tüm Konular' url='topic_list' icon='fas fa-list' class='!bg-transparent !text-slate-700 hover:!text-blue-600 !shadow-none px-0 py-0' %}
+        
+        {% include 'forum/components/button.html' with text='Yeni Konu' url='create_topic' icon='fas fa-plus' class='bg-blue-600 hover:bg-blue-700 text-white shadow-md' %}
+        
+        {% include 'forum/components/button.html' with text='Lider Tablosu' url='accounts:leaderboard' icon='fas fa-trophy' class='!bg-transparent !text-slate-700 hover:!text-blue-700 !shadow-none px-0 py-0' %}
       </div>
     </div>
 
@@ -39,16 +29,15 @@
 
       {% if request.user.is_authenticated %}
         <!-- Bildirimler -->
-        <a href="{% url 'notifications' %}" class="relative text-slate-700 hover:text-blue-600 transition-colors" 
-           aria-label="Bildirimler" title="Bildirimler">
-          <i class="far fa-bell text-xl" aria-hidden="true"></i>
+        <div class="relative">
+          {% include 'forum/components/button.html' with icon='far fa-bell' url='notifications' icon_only=True class='text-slate-700 hover:text-blue-600 relative' %}
           {% if unread_count %}
             <span class="absolute -top-1 -right-1 bg-gradient-to-r from-blue-500 to-sky-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse"
                   role="status" aria-label="{{ unread_count }} okunmamış bildirim var">
               {{ unread_count }}
             </span>
           {% endif %}
-        </a>
+        </div>
 
         <!-- Kullanıcı Profili -->
         <a href="{% url 'accounts:user_profile' username=request.user.username %}" 
@@ -64,10 +53,8 @@
           {% endif %}
         </a>
       {% else %}
-        <a href="{% url 'accounts:login' %}" class="text-slate-700 hover:text-blue-600 transition-colors"
-           aria-label="Giriş Yap" title="Giriş Yap">Giriş Yap</a>
-        <a href="{% url 'accounts:signup' %}" class="gradient-bg hover:shadow-lg text-white px-4 py-2 rounded-lg text-sm transition-all duration-300 font-medium"
-           aria-label="Kayıt Ol" title="Kayıt Ol">Kayıt Ol</a>
+        {% include 'forum/components/button.html' with text='Giriş Yap' url='accounts:login' class='!bg-transparent !text-slate-700 hover:!text-blue-600 !shadow-none px-0 py-0' %}
+        {% include 'forum/components/button.html' with text='Kayıt Ol' url='accounts:signup' class='gradient-bg hover:shadow-lg text-white px-4 py-2 rounded-lg text-sm transition-all duration-300 font-medium' %}
       {% endif %}
     </div>
   </div>

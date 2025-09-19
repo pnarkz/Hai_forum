@@ -19,7 +19,7 @@ Props:
         </div>
 
         <div>
-          <!-- Kullanıcı adı, unvan, OP -->
+          <!-- Kullanıcı adı, OP -->
           <div class="flex items-center space-x-2">
             <a href="{% url 'accounts:user_profile' username=comment.author.username %}"
                class="font-semibold text-slate-800 hover:text-blue-600 transition-colors">
@@ -90,36 +90,29 @@ Props:
         </div>
       </div>
     </div>
-      <!-- İçerik -->
-      <div class="prose prose-slate max-w-none mb-4">
-        {% if comment.content_html %}
-          {{ comment.content_html|safe }}
-        {% else %}
-          <p class="whitespace-pre-wrap">{{ comment.content }}</p>
-        {% endif %}
-      </div>
 
-      <!-- Medya -->
-      {% if comment.image or comment.video %}
-        <div class="mb-4 space-y-3">
-          {% if comment.image %}
-            <div>
-              <img src="{{ comment.image.url }}" 
-                  alt="Yorum görseli"
-                  class="rounded-lg max-h-80 object-cover shadow-md">
-            </div>
-          {% endif %}
-          {% if comment.video %}
-            <div>
-              <video controls class="rounded-lg max-h-80 shadow-md w-full">
-                <source src="{{ comment.video.url }}">
-                Tarayıcınız video oynatmayı desteklemiyor.
-              </video>
-            </div>
-          {% endif %}
-        </div>
+    <!-- İçerik -->
+    <div class="prose prose-slate max-w-none mb-4">
+      {% if comment.content_html %}
+        {{ comment.content_html|safe }}
+      {% else %}
+        <p class="whitespace-pre-wrap">{{ comment.content }}</p>
       {% endif %}
     </div>
+
+    <!-- Medya -->
+    {% if comment.image or comment.video %}
+      <div class="mb-4 space-y-3">
+        {% if comment.image %}
+          <img src="{{ comment.image.url }}" alt="Yorum görseli" class="rounded-lg max-h-80 object-cover shadow-md">
+        {% endif %}
+        {% if comment.video %}
+          <video controls class="rounded-lg max-h-80 shadow-md w-full">
+            <source src="{{ comment.video.url }}">
+          </video>
+        {% endif %}
+      </div>
+    {% endif %}
 
     <!-- Ekler -->
     {% if comment.attachments.exists %}
@@ -142,18 +135,15 @@ Props:
       <div class="flex items-center space-x-4">
         <button type="button"
                 class="like-comment-btn flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-rose-50 text-slate-600 hover:text-rose-600 transition-all group"
-                data-comment-id="{{ comment.id }}"
-                aria-pressed="false"
-                aria-label="Like comment">
+                data-comment-id="{{ comment.id }}">
           <i class="far fa-heart group-hover:fas"></i>
           <span class="like-count text-sm font-medium">{{ comment.likes.count|default:0 }}</span>
        </button>
+
         {% if user.is_authenticated and not is_reply %}
           <button type="button"
                   class="reply-comment-btn flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-all"
-                  data-comment-id="{{ comment.id }}"
-                  aria-expanded="false"
-                  aria-controls="replyForm-{{ comment.id }}">
+                  data-comment-id="{{ comment.id }}">
             <i class="fas fa-reply"></i>
             <span class="text-sm font-medium">Yanıtla</span>
           </button>
@@ -162,8 +152,7 @@ Props:
         {% if user.id == comment.topic.author.id and not comment.is_solution and not comment.topic.is_solved %}
             <button type="button"
                     class="mark-solution-btn flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-green-50 text-slate-600 hover:text-green-600 transition-all"
-                    data-comment-id="{{ comment.id }}"
-                    aria-label="Mark as solution">
+                    data-comment-id="{{ comment.id }}">
               <i class="fas fa-check-circle"></i>
               <span class="text-sm font-medium">Çözüm Olarak İşaretle</span>
             </button>
@@ -171,17 +160,13 @@ Props:
       </div>
 
       <!-- Sıra numarası -->
-      {% if forloop %}
-        <div class="text-sm text-slate-400">
-          #{{ forloop.counter }}
-        </div>
-      {% endif %}
+      <div class="text-sm text-slate-400">#{{ forloop.counter }}</div>
     </div>
   </div>
 
   <!-- Yanıt formu -->
   {% if user.is_authenticated and not is_reply %}
-    <div id="replyForm-{{ comment.id }}" class="hidden mt-4 ml-8" aria-live="polite" aria-label="Reply form for comment {{ comment.id }}">
+    <div id="replyForm-{{ comment.id }}" class="hidden mt-4 ml-8">
       <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
         <form method="post" action="{% url 'reply_comment' comment.id %}">
           {% csrf_token %}

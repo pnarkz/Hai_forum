@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load form_tags %}
+{% load forum_tags %}
 
 {% block content %}
 <div class="max-w-md mx-auto px-4 py-10">
@@ -60,11 +60,17 @@
           <p class="text-red-600 text-sm mt-1">{{ form.password2.errors.0 }}</p>
         {% endif %}
       </div>
-
+        <div>
+        {{ form.captcha|add_class:"mt-4"|safe }}
+        {% if form.captcha.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.captcha.errors.0 }}</p>
+        {% endif %}
+      </div>
       <button type="submit"
               class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
         ✅ Register Now
       </button>
+      <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     </form>
 
     <p class="text-center text-sm text-gray-600 mt-6">

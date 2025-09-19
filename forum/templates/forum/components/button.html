@@ -1,44 +1,74 @@
 {% comment %}
 Reusable Button Component
 Props:
-- text (required)
+- text (required unless icon_only=True)
 - icon (optional)
 - url (optional): Django URL name
-- slug (optional): for topic-based routes
-- topic_id, comment_id, user_id (old, now you can ignore topic_id)
+- slug (optional)
+- comment_id, user_id (optional)
 - href (optional): raw URL
 - class (optional)
 - onclick (optional)
+- type (optional): for <button>, default="button"
+- icon_only (optional): true -> only show icon
 Usage:
 {% include 'forum/components/button.html' with text='Düzenle' url='edit_topic' slug=topic.slug icon='fas fa-edit' class='bg-yellow-500' %}
+{% include 'forum/components/button.html' with icon='fas fa-trash' url='delete_topic' slug=topic.slug icon_only=True class='bg-red-500' %}
 {% endcomment %}
 
-{% with base_class="inline-flex items-center justify-center px-4 py-2 rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-200" %}
-  {% if url %}
-    {% comment %} Desteklenen argümanlar: slug, topic_id, comment_id, user_id, veya none {% endcomment %}
-    {% if slug %}
-      <a href="{% url url slug %}"
-    {% elif topic_id %}
-      <a href="{% url url topic_id %}"
-    {% elif comment_id %}
-      <a href="{% url url comment_id %}"
-    {% elif user_id %}
-      <a href="{% url url user_id %}"
-    {% else %}
-      <a href="{% url url %}"
-    {% endif %}
-        class="{{ base_class }} {% if class %}{{ class }}{% endif %}"
-        {% if onclick %}onclick="{{ onclick }}"{% endif %}>
-        {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
-        {{ text }}
-      </a>
-
-  {% elif href %}
-    <a href="{{ href }}"
-       class="{{ base_class }} {% if class %}{{ class }}{% endif %}"
-       {% if onclick %}onclick="{{ onclick }}"{% endif %}>
-      {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
-      {{ text }}
-    </a>
+{% with base_class="inline-flex items-center justify-center rounded-md font-medium transition duration-200" %}
+  {% if icon_only %}
+    {% with icon_class="p-2 w-9 h-9 text-white bg-slate-600 hover:bg-slate-700" %}
+      {% if url %}
+        <a href="{% if slug %}{% url url slug %}{% elif comment_id %}{% url url comment_id %}{% elif user_id %}{% url url user_id %}{% else %}{% url url %}{% endif %}"
+           class="{{ base_class }} {{ icon_class }} {% if class %}{{ class }}{% endif %}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           role="button" aria-label="{{ text|default:'Button' }}">
+          {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i>{% endif %}
+        </a>
+      {% elif href %}
+        <a href="{{ href }}"
+           class="{{ base_class }} {{ icon_class }} {% if class %}{{ class }}{% endif %}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           role="button" aria-label="{{ text|default:'Button' }}">
+          {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i>{% endif %}
+        </a>
+      {% else %}
+        <button type="{{ type|default:'button' }}"
+                class="{{ base_class }} {{ icon_class }} {% if class %}{{ class }}{% endif %}"
+                {% if onclick %}onclick="{{ onclick }}"{% endif %}
+                aria-label="{{ text|default:'Button' }}">
+          {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i>{% endif %}
+        </button>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    {% with text_class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700" %}
+      {% if url %}
+        <a href="{% if slug %}{% url url slug %}{% elif comment_id %}{% url url comment_id %}{% elif user_id %}{% url url user_id %}{% else %}{% url url %}{% endif %}"
+           class="{{ base_class }} {{ text_class }} {% if class %}{{ class }}{% endif %}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           role="button" aria-label="{{ text }}">
+          {% if icon %}<i class="{{ icon }} mr-2" aria-hidden="true"></i>{% endif %}
+          {{ text }}
+        </a>
+      {% elif href %}
+        <a href="{{ href }}"
+           class="{{ base_class }} {{ text_class }} {% if class %}{{ class }}{% endif %}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           role="button" aria-label="{{ text }}">
+          {% if icon %}<i class="{{ icon }} mr-2" aria-hidden="true"></i>{% endif %}
+          {{ text }}
+        </a>
+      {% else %}
+        <button type="{{ type|default:'button' }}"
+                class="{{ base_class }} {{ text_class }} {% if class %}{{ class }}{% endif %}"
+                {% if onclick %}onclick="{{ onclick }}"{% endif %}
+                aria-label="{{ text }}">
+          {% if icon %}<i class="{{ icon }} mr-2" aria-hidden="true"></i>{% endif %}
+          {{ text }}
+        </button>
+      {% endif %}
+    {% endwith %}
   {% endif %}
 {% endwith %}

@@ -1,12 +1,26 @@
-<footer class="bg-white/95 backdrop-blur-md border-t border-slate-200/60 py-6" role="contentinfo" aria-label="Alt bilgi">
-  <div class="container mx-auto px-6 text-center text-slate-600 text-sm">
+<footer class="bg-white/95 backdrop-blur-md border-t border-slate-200/60 py-6" 
+        role="contentinfo" aria-label="Alt bilgi">
+  <div class="container mx-auto px-6 text-center text-slate-600 text-sm space-y-2">
     
-    <div class="flex items-center justify-center space-x-2 mb-2" title="AI Forum">
-      <i class="fas fa-brain text-blue-600" aria-hidden="true"></i>
-      <span class="font-medium">© {% now "Y" %} AI Forum</span>
+    <!-- Logo & Marka -->
+    <div class="flex items-center justify-center space-x-2 mb-1" title="AI Forum">
+      <div class="w-6 h-6 gradient-bg rounded-md flex items-center justify-center">
+        <i class="fas fa-brain text-white text-xs" aria-hidden="true"></i>
+      </div>
+      <span class="font-semibold text-slate-700">© {% now "Y" %} AI Forum</span>
     </div>
     
-    <p aria-label="Forum açıklaması">Yapay zeka ve teknoloji tartışmalarının merkezi</p>
-  
+    <!-- Açıklama -->
+    <p class="text-slate-500" aria-label="Forum açıklaması">
+      Yapay zeka ve teknoloji tartışmalarının merkezi
+    </p>
+
+    <!-- Ek Linkler -->
+    <div class="flex items-center justify-center space-x-4 text-xs mt-2">
+      <a href="{% url 'home' %}" class="hover:text-blue-600 transition-colors">Ana Sayfa</a>
+      <a href="{% url 'topic_list' %}" class="hover:text-blue-600 transition-colors">Konular</a>
+      <a href="{% url 'accounts:leaderboard' %}" class="hover:text-blue-600 transition-colors">Lider Tablosu</a>
+      <a href="{% url 'accounts:login' %}" class="hover:text-blue-600 transition-colors">Giriş</a>
+    </div>
   </div>
 </footer>

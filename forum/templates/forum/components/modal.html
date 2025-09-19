@@ -150,11 +150,18 @@ function openModal(modalId, options = {}) {
 
   // Add to modal stack
   modalStack.push(modalId);
-  
-  // Show modal
+
+  // Açılış animasyonu
   modal.classList.remove('hidden');
+  modal.classList.add('modal-enter');
+  setTimeout(() => {
+    modal.classList.add('modal-enter-active');
+    modal.classList.remove('modal-enter');
+  }, 10);
+
+  // Scroll disable
   document.body.style.overflow = 'hidden';
-  
+
   // Focus management
   setTimeout(() => {
     const firstFocusable = modal.querySelector('button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
@@ -162,18 +169,18 @@ function openModal(modalId, options = {}) {
       firstFocusable.focus();
     }
   }, 100);
-  
+
   // Load content if URL provided
   if (options.url) {
     loadModalContent(modalId, options.url);
   }
-  
+
   // Set title if provided
   if (options.title) {
     const titleEl = modal.querySelector(`#${modalId}-title`);
     if (titleEl) titleEl.textContent = options.title;
   }
-  
+
   // Trigger custom event
   modal.dispatchEvent(new CustomEvent('modal:opened', { detail: options }));
 }
@@ -187,15 +194,23 @@ function closeModal(modalId) {
   if (index > -1) {
     modalStack.splice(index, 1);
   }
-  
-  // Hide modal
-  modal.classList.add('hidden');
-  
-  // Restore scroll if no other modals
-  if (modalStack.length === 0) {
-    document.body.style.overflow = '';
-  }
-  
+
+  // Kapanış animasyonu
+  modal.classList.add('modal-exit');
+  setTimeout(() => {
+    modal.classList.add('modal-exit-active');
+    modal.classList.remove('modal-exit');
+
+    // animasyon bitince tamamen kapat
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modal.classList.remove('modal-exit-active');
+      if (modalStack.length === 0) {
+        document.body.style.overflow = '';
+      }
+    }, 300); // CSS transition süresiyle aynı olmalı
+  }, 10);
+
   // Trigger custom event
   modal.dispatchEvent(new CustomEvent('modal:closed'));
 }

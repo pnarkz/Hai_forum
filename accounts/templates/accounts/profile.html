@@ -2,114 +2,378 @@
 {% load math_filters %}
 {% load static %}
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-  <!-- PROFİL BAŞLIK ALANI -->
-  <div class="relative overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl shadow-xl">
-    <div class="relative z-10 px-6 py-8">  <!-- py değeri artırıldı -->
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <div class="flex items-center gap-6">
-          <!-- Avatar -->
-          <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-lg">
-            {% include 'forum/components/user_avatar.html' with user=profile_user image_url=image_url only %}
+<style>
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.floating-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.profile-gradient {
+  background: linear-gradient(135deg, 
+    #3b82f6 0%, 
+    #1d4ed8 25%, 
+    #0ea5e9 50%, 
+    #06b6d4 75%, 
+    #0891b2 100%);
+  background-size: 300% 300%;
+  animation: gradientShift 10s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  80%, 100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+.profile-badge {
+  background: linear-gradient(45deg, #3b82f6, #0ea5e9);
+  animation: badge-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes badge-glow {
+  from { box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+  to { box-shadow: 0 0 25px rgba(14, 165, 233, 0.6); }
+}
+</style>
+
+<div class="max-w-7xl mx-auto px-4 py-6 space-y-8">
+
+  <!-- MODERN PROFİL HEADER -->
+  <div class="relative overflow-hidden profile-gradient rounded-3xl shadow-2xl">
+    <!-- Decorative Elements -->
+    <div class="absolute inset-0">
+      <div class="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+      <div class="absolute top-20 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+      <div class="absolute bottom-10 left-1/2 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative z-10 px-6 py-8">
+      <div class="flex items-start justify-between flex-wrap gap-6">
+        
+        <!-- Sol Taraf - Profil Bilgileri -->
+        <div class="flex items-start gap-6 flex-1">
+          <!-- Avatar Container -->
+          <div class="relative">
+            <!-- Pulse Ring Effect -->
+            <div class="absolute inset-0 rounded-full border-2 border-white/30 pulse-ring"></div>
+            <!-- Main Avatar -->
+            <div class="relative w-20 h-20 rounded-full overflow-hidden border-3 border-white/50 shadow-xl">
+              {% include 'forum/components/user_avatar.html' with user=profile_user image_url=image_url only %}
+            </div>
+            <!-- Online Status Badge -->
+            <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-3 border-white shadow-lg flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full"></div>
+            </div>
           </div>
-          <!-- Kullanıcı Bilgileri -->
-          <div class="text-white">
-            <h1 class="text-2xl font-bold mb-1">{{ profile_user.username }}</h1>
 
+          <!-- Profil Detayları -->
+          <div class="text-white flex-1 min-w-0">
+            <!-- Kullanıcı Adı ve Badge -->
+            <div class="flex items-center gap-3 mb-2">
+              <h1 class="text-2xl font-bold tracking-tight">{{ profile_user.username }}</h1>
+              {% if profile_user.is_staff %}
+                <span class="profile-badge text-white text-xs px-2 py-1 rounded-full font-semibold">
+                  <i class="fas fa-crown mr-1"></i>Admin
+                </span>
+              {% elif profile_user.is_superuser %}
+                <span class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                  <i class="fas fa-star mr-1"></i>Super User
+                </span>
+              {% else %}
+                <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full font-medium">
+                  <i class="fas fa-user mr-1"></i>Üye
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Bio -->
             {% if bio %}
-            <p class="text-white/90 text-sm mb-2">{{ bio }}</p>
+              <p class="text-white/90 text-sm mb-3 leading-relaxed max-w-2xl">{{ bio }}</p>
+            {% else %}
+              <p class="text-white/70 text-sm mb-3 italic">Bu kullanıcı henüz bir bio eklemiş değil.</p>
             {% endif %}
 
-            <!-- PROFİL DETAYLARI -->
-            <div class="flex flex-wrap gap-2 text-xs text-white/80">
-              <div class="flex items-center gap-1">
-                <i class="fas fa-calendar-alt"></i>
+            <!-- Profil Meta Bilgileri -->
+            <div class="flex flex-wrap gap-3 text-xs text-white/80 mb-4">
+              <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg">
+                <i class="fas fa-calendar-alt text-blue-200"></i>
                 <span>{{ profile_user.date_joined|date:"d M Y" }} tarihinde katıldı</span>
               </div>
 
               {% if location %}
-              <div class="flex items-center gap-1">
-                <i class="fas fa-map-marker-alt"></i>
+              <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg">
+                <i class="fas fa-map-marker-alt text-red-200"></i>
                 <span>{{ location }}</span>
               </div>
               {% endif %}
 
+              {% if profile_user.last_login %}
+              <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg">
+                <i class="fas fa-clock text-green-200"></i>
+                <span>Son giriş: {{ profile_user.last_login|date:"d M Y H:i" }}</span>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Sosyal Medya Linkleri -->
+            {% if website or twitter or linkedin %}
+            <div class="flex flex-wrap gap-2 mb-4">
               {% if website %}
-              <a href="{{ website }}" target="_blank" class="flex items-center gap-1 underline hover:text-white">
-                <i class="fas fa-globe"></i>
+              <a href="{{ website }}" target="_blank" class="glass-morphism px-3 py-1 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center gap-1 group text-xs">
+                <i class="fas fa-globe text-blue-200 group-hover:text-white transition-colors"></i>
                 <span>Website</span>
               </a>
               {% endif %}
 
               {% if twitter %}
-              <a href="https://twitter.com/{{ twitter|cut:'@' }}" target="_blank" class="flex items-center gap-1 underline hover:text-white">
-                <i class="fab fa-twitter"></i>
+              <a href="https://twitter.com/{{ twitter|cut:'@' }}" target="_blank" class="glass-morphism px-3 py-1 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center gap-1 group text-xs">
+                <i class="fab fa-twitter text-sky-200 group-hover:text-white transition-colors"></i>
                 <span>@{{ twitter|cut:'@' }}</span>
               </a>
               {% endif %}
 
               {% if linkedin %}
-              <a href="{{ linkedin }}" target="_blank" class="flex items-center gap-1 underline hover:text-white">
-                <i class="fab fa-linkedin"></i>
+              <a href="{{ linkedin }}" target="_blank" class="glass-morphism px-3 py-1 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center gap-1 group text-xs">
+                <i class="fab fa-linkedin text-blue-300 group-hover:text-white transition-colors"></i>
                 <span>LinkedIn</span>
               </a>
               {% endif %}
             </div>
+            {% endif %}
 
-            <!-- Stat Kutuları -->
-            <div class="flex flex-wrap gap-2 mt-3 text-xs">
-              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">☀️ {{ karma }} Karma</span>
-              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">💡 {{ topic_count }} Konu</span>
-              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">💬 {{ comment_count }} Yorum</span>
-              <span class="bg-white/20 px-3 py-1 rounded-lg shadow-sm hover:bg-white/30 transition">❤️ {{ like_count }} Beğeni</span>
+            <!-- İstatistik Kartları -->
+            <div class="grid grid-cols-4 gap-3">
+              <div class="stat-card px-3 py-2 rounded-lg text-center">
+                <div class="text-lg font-bold mb-1">{{ karma }}</div>
+                <div class="text-xs text-white/80 flex items-center justify-center gap-1">
+                  <i class="fas fa-star"></i>Karma
+                </div>
+              </div>
+              <div class="stat-card px-3 py-2 rounded-lg text-center">
+                <div class="text-lg font-bold mb-1">{{ topic_count }}</div>
+                <div class="text-xs text-white/80 flex items-center justify-center gap-1">
+                  <i class="fas fa-comments"></i>Konu
+                </div>
+              </div>
+              <div class="stat-card px-3 py-2 rounded-lg text-center">
+                <div class="text-lg font-bold mb-1">{{ comment_count }}</div>
+                <div class="text-xs text-white/80 flex items-center justify-center gap-1">
+                  <i class="fas fa-comment"></i>Yorum
+                </div>
+              </div>
+              <div class="stat-card px-3 py-2 rounded-lg text-center">
+                <div class="text-lg font-bold mb-1">{{ like_count }}</div>
+                <div class="text-xs text-white/80 flex items-center justify-center gap-1">
+                  <i class="fas fa-heart"></i>Beğeni
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-
-        <!-- Profili Düzenle Butonu -->
-        {% if request.user == profile_user %}
-        <a href="{% url 'accounts:profile_edit' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-xl font-medium transition-all duration-300 hover:scale-105 backdrop-blur-sm">
-          <i class="fas fa-edit"></i>
-          <span>Profili Düzenle</span>
-        </a>
-        {% endif %}
+        <!-- Sağ Taraf - Aksiyon Butonları -->
+        <div class="flex flex-col gap-2 min-w-fit">
+          {% if request.user == profile_user %}
+            <!-- Profili Düzenle -->
+            <a href="{% url 'accounts:profile_edit' %}" 
+               class="glass-morphism hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 flex items-center gap-2 group shadow-lg text-sm">
+              <i class="fas fa-edit group-hover:rotate-12 transition-transform"></i>
+              <span>Profili Düzenle</span>
+            </a>
+            
+            <!-- Çıkış Yap -->
+            <a href="{% url 'accounts:logout' %}" 
+               class="bg-red-500/20 hover:bg-red-500/30 border border-red-300/30 text-red-100 px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 flex items-center gap-2 group shadow-lg text-sm">
+              <i class="fas fa-sign-out-alt group-hover:translate-x-1 transition-transform"></i>
+              <span>Çıkış Yap</span>
+            </a>
+            
+            <!-- Ayarlar -->
+            <a href="#" 
+               class="glass-morphism hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 flex items-center gap-2 group shadow-lg text-sm">
+              <i class="fas fa-cog group-hover:rotate-90 transition-transform"></i>
+              <span>Ayarlar</span>
+            </a>
+          {% else %}
+            <!-- Mesaj Gönder -->
+            <button class="glass-morphism hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 flex items-center gap-2 group shadow-lg text-sm">
+              <i class="fas fa-envelope group-hover:scale-110 transition-transform"></i>
+              <span>Mesaj Gönder</span>
+            </button>
+            
+            <!-- Takip Et -->
+            <button class="bg-green-500/20 hover:bg-green-500/30 border border-green-300/30 text-green-100 px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 flex items-center gap-2 group shadow-lg text-sm">
+              <i class="fas fa-user-plus group-hover:scale-110 transition-transform"></i>
+              <span>Takip Et</span>
+            </button>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Son Konular -->
-  <div class="bg-white rounded-xl shadow p-6">
-    <h2 class="text-lg font-bold mb-4"><i class="fas fa-comments mr-2"></i>Son Konular</h2>
-    {% for topic in recent_topics %}
-      {% include 'forum/components/topic_card.html' with topic=topic %}
-    {% empty %}
-      <p class="text-center text-slate-500 italic">Henüz konu bulunmuyor.</p>
-    {% endfor %}
-  </div>
+  <!-- İÇERİK SECTION'LARI -->
+  <div class="grid lg:grid-cols-3 gap-8">
+    <!-- Ana İçerik -->
+    <div class="lg:col-span-2 space-y-8">
+      
+      <!-- Son Konular -->
+      <div class="floating-card bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+          <h2 class="text-xl font-bold gradient-text flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+              <i class="fas fa-comments text-white"></i>
+            </div>
+            Son Konular
+          </h2>
+        </div>
+        <div class="p-6">
+          {% for topic in recent_topics %}
+            <div class="hover:bg-gray-50 p-4 rounded-xl transition-colors duration-200 -mx-2">
+              {% include 'forum/components/topic_card.html' with topic=topic %}
+            </div>
+          {% empty %}
+            <div class="text-center py-12">
+              <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-comments text-gray-400 text-2xl"></i>
+              </div>
+              <p class="text-gray-500 text-lg">Henüz konu bulunmuyor.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
 
-  <!-- Son Yorumlar -->
-  <div class="bg-white rounded-xl shadow p-6">
-    <h2 class="text-lg font-bold mb-4"><i class="fas fa-comment-dots mr-2"></i>Son Yorumlar</h2>
-    {% for comment in recent_comments %}
-      {% include 'forum/components/comment_card.html' with comment=comment %}
-    {% empty %}
-      <p class="text-center text-slate-500 italic">Henüz yorum yapılmamış.</p>
-    {% endfor %}
-  </div>
+      <!-- Son Yorumlar -->
+      <div class="floating-card bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+          <h2 class="text-xl font-bold gradient-text flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+              <i class="fas fa-comments text-white"></i>
+            </div>
+            Son Yorumlar
+          </h2>
+        </div>
+        <div class="p-6">
+          {% for comment in recent_comments %}
+            <div class="hover:bg-gray-50 p-4 rounded-xl transition-colors duration-200 -mx-2">
+              {% include 'forum/components/comment_card.html' with comment=comment %}
+            </div>
+          {% empty %}
+            <div class="text-center py-12">
+              <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-comment-dots text-gray-400 text-2xl"></i>
+              </div>
+              <p class="text-gray-500 text-lg">Henüz yorum yapılmamış.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
 
-  <!-- Beğenilen Konular -->
-  <div class="bg-white rounded-xl shadow p-6">
-    <h2 class="text-lg font-bold mb-4"><i class="fas fa-heart mr-2"></i>Beğenilen Konular</h2>
-    <div class="grid md:grid-cols-2 gap-4">
-      {% for topic in recent_liked_topics %}
-        {% include 'forum/components/topic_card.html' with topic=topic %}
-      {% empty %}
-        <p class="text-center text-slate-500 italic col-span-2">Henüz beğenilen konu yok.</p>
-      {% endfor %}
+    <!-- Sidebar -->
+    <div class="space-y-8">
+      
+      <!-- Aktivite Özeti -->
+      <div class="floating-card bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+          <h2 class="text-xl font-bold gradient-text flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+              <i class="fas fa-comments text-white"></i>
+            </div>
+            Aktivite Özeti
+          </h3>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600">Bu Hafta</span>
+            <span class="font-bold text-green-600">+12 Karma</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600">Bu Ay</span>
+            <span class="font-bold text-blue-600">3 Yeni Konu</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600">Toplam</span>
+            <span class="font-bold text-purple-600">{{ comment_count }} Yorum</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Beğenilen Konular -->
+      <div class="floating-card bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+          <h2 class="text-xl font-bold gradient-text flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+              <i class="fas fa-comments text-white"></i>
+            </div>
+            Beğenilen Konular
+          </h3>
+        </div>
+        <div class="p-6">
+          {% for topic in recent_liked_topics %}
+            <div class="hover:bg-gray-50 p-3 rounded-xl transition-colors duration-200 -mx-1 mb-3 last:mb-0">
+              {% include 'forum/components/topic_card.html' with topic=topic %}
+            </div>
+          {% empty %}
+            <div class="text-center py-8">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-heart text-gray-400 text-xl"></i>
+              </div>
+              <p class="text-gray-500">Henüz beğenilen konu yok.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
     </div>
   </div>
 
 </div>
-  <script src="{% static 'js/comments.js' %}"></script>
+
+<script src="{% static 'js/comments.js' %}"></script>
 {% endblock %}
