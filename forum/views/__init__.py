@@ -6,3 +6,4 @@ from .category_views import *
 from .search_views import *
 from .user_views import *
 from .home_views import *
+from .fastapi_bridge import *
